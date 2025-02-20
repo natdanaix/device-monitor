@@ -14,17 +14,20 @@
             background-color: #f5f5f5;
         }
         .card {
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            transition: transform 0.3s;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+            margin-bottom: 12px;
+            transition: transform 0.2s;
         }
         .card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
         }
         .card-header {
-            border-radius: 10px 10px 0 0 !important;
+            border-radius: 8px 8px 0 0 !important;
             font-weight: bold;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
         }
         .device-active {
             background-color: #d4edda;
@@ -54,26 +57,57 @@
             font-weight: bold;
         }
         .status-badge {
-            font-size: 0.9rem;
-            padding: 0.4rem 0.6rem;
+            font-size: 0.7rem;
+            padding: 0.25rem 0.4rem;
         }
         .card-body {
-            padding: 1.5rem;
+            padding: 0.75rem;
+            font-size: 0.85rem;
+        }
+        .device-info {
+            margin-bottom: 0.4rem;
+        }
+        .device-info-label {
+            font-weight: 500;
+            margin-right: 0.3rem;
+            width: 42%;
+            display: inline-block;
         }
         .last-checked {
             font-size: 0.75rem;
             color: #6c757d;
+        }
+        .compact-view .card-header {
+            padding: 0.4rem 0.6rem;
+            font-size: 0.8rem;
+        }
+        .compact-view .card-body {
+            padding: 0.6rem;
+        }
+        .compact-view .device-info {
+            margin-bottom: 0.25rem;
+            display: flex;
+            flex-wrap: nowrap;
+            font-size: 0.75rem;
         }
         @media (max-width: 768px) {
             .device-count {
                 text-align: center;
             }
         }
+        /* View toggle buttons */
+        .view-toggle {
+            margin-bottom: 1rem;
+        }
+        /* Extra compact view */
+        .extra-compact-view .col-device {
+            margin-bottom: 8px;
+        }
     </style>
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-3">
         <div class="container">
             <a class="navbar-brand" href="#">
                 <i class="fas fa-tv me-2"></i>ระบบติดตามสถานะอุปกรณ์
@@ -86,34 +120,34 @@
 
     <div class="container">
         <!-- Summary Section -->
-        <div class="row mb-4">
-            <div class="col-md-4 mb-3">
+        <div class="row mb-3">
+            <div class="col-md-4 mb-2">
                 <div class="card bg-white h-100">
-                    <div class="card-body">
-                        <h5 class="card-title text-primary">
-                            <i class="fas fa-check-circle me-2"></i>อุปกรณ์ออนไลน์
+                    <div class="card-body py-2">
+                        <h5 class="card-title text-primary mb-1">
+                            <i class="fas fa-check-circle me-1"></i>อุปกรณ์ออนไลน์
                         </h5>
-                        <h2 class="display-4 fw-bold" id="activeCount">0</h2>
+                        <h2 class="display-5 fw-bold mb-0" id="activeCount">0</h2>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 mb-3">
+            <div class="col-md-4 mb-2">
                 <div class="card bg-white h-100">
-                    <div class="card-body">
-                        <h5 class="card-title text-danger">
-                            <i class="fas fa-times-circle me-2"></i>อุปกรณ์ออฟไลน์
+                    <div class="card-body py-2">
+                        <h5 class="card-title text-danger mb-1">
+                            <i class="fas fa-times-circle me-1"></i>อุปกรณ์ออฟไลน์
                         </h5>
-                        <h2 class="display-4 fw-bold" id="inactiveCount">0</h2>
+                        <h2 class="display-5 fw-bold mb-0" id="inactiveCount">0</h2>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 mb-3">
+            <div class="col-md-4 mb-2">
                 <div class="card bg-white h-100">
-                    <div class="card-body">
-                        <h5 class="card-title text-info">
-                            <i class="fas fa-tablet-alt me-2"></i>อุปกรณ์ทั้งหมด
+                    <div class="card-body py-2">
+                        <h5 class="card-title text-info mb-1">
+                            <i class="fas fa-tablet-alt me-1"></i>อุปกรณ์ทั้งหมด
                         </h5>
-                        <h2 class="display-4 fw-bold" id="totalCount">0</h2>
+                        <h2 class="display-5 fw-bold mb-0" id="totalCount">0</h2>
                     </div>
                 </div>
             </div>
@@ -122,15 +156,28 @@
         <!-- Devices List Section -->
         <div class="card mb-4">
             <div class="card-header bg-white">
-                <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
                     <h5 class="mb-0">
                         <i class="fas fa-list me-2"></i>รายการอุปกรณ์
                     </h5>
-                    <div class="input-group" style="max-width: 300px;">
-                        <input type="text" id="searchInput" class="form-control" placeholder="ค้นหาอุปกรณ์...">
-                        <button class="btn btn-outline-secondary" type="button" id="searchBtn">
-                            <i class="fas fa-search"></i>
-                        </button>
+                    <div class="d-flex align-items-center mt-2 mt-md-0">
+                        <div class="btn-group view-toggle me-2">
+                            <button class="btn btn-sm btn-outline-primary active" id="normalViewBtn">
+                                <i class="fas fa-th-large"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" id="compactViewBtn">
+                                <i class="fas fa-th"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" id="extraCompactViewBtn">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </div>
+                        <div class="input-group" style="max-width: 200px;">
+                            <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="ค้นหาอุปกรณ์...">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" id="searchBtn">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -140,7 +187,7 @@
                         <span class="visually-hidden">กำลังโหลด...</span>
                     </div>
                 </div>
-                <div id="devicesList" class="row"></div>
+                <div id="devicesList" class="row g-2"></div>
                 <p class="last-checked text-center mt-3">
                     ข้อมูลล่าสุดเมื่อ: <span id="lastUpdatedTime">-</span>
                 </p>
@@ -149,7 +196,7 @@
     </div>
 
     <!-- Footer -->
-    <footer class="bg-light py-3 mt-5">
+    <footer class="bg-light py-2 mt-4">
         <div class="container text-center">
             <p class="mb-0">&copy; 2025 ระบบติดตามสถานะอุปกรณ์ | <a href="#" target="_blank">เอกสาร</a></p>
         </div>
@@ -185,14 +232,18 @@
         const refreshBtn = document.getElementById('refreshBtn');
         const searchInput = document.getElementById('searchInput');
         const searchBtn = document.getElementById('searchBtn');
+        const normalViewBtn = document.getElementById('normalViewBtn');
+        const compactViewBtn = document.getElementById('compactViewBtn');
+        const extraCompactViewBtn = document.getElementById('extraCompactViewBtn');
+
+        // View state
+        let currentView = 'normal'; // normal, compact, extraCompact
 
         // Check if device is active based on last update time
-        // แก้ไขฟังก์ชัน isDeviceActive
-// แก้ไขฟังก์ชัน isDeviceActive ให้อิงเฉพาะค่า isActive เท่านั้น
-function isDeviceActive(device) {
-    // ตรวจสอบสถานะ isActive จาก Firebase โดยตรง
-    return device.isActive === true;
-}
+        function isDeviceActive(device) {
+            // ตรวจสอบสถานะ isActive จาก Firebase โดยตรง
+            return device.isActive === true;
+        }
 
         // Format uptime in hours and minutes
         function formatUptime(minutes) {
@@ -202,45 +253,100 @@ function isDeviceActive(device) {
             const mins = minutes % 60;
             
             if (hours > 0) {
-                return `${hours} ชั่วโมง ${mins} นาที`;
+                return `${hours} ชม. ${mins} น.`;
             } else {
                 return `${mins} นาที`;
             }
         }
 
-        // Create device card HTML
+        // Create device card HTML based on current view
         function createDeviceCard(deviceId, deviceData) {
             const isActive = isDeviceActive(deviceData);
             const statusClass = isActive ? 'device-active' : 'device-inactive';
             const statusText = isActive ? 'ออนไลน์' : 'ออฟไลน์';
             const statusIcon = isActive ? 'fa-check-circle' : 'fa-times-circle';
+            const deviceName = deviceData.deviceName || deviceId;
             
-            return `
-                <div class="col-md-6 col-lg-4 device-card">
-                    <div class="card">
-                        <div class="card-header ${statusClass} d-flex justify-content-between align-items-center">
-                            <span>${deviceData.deviceName || deviceId}</span>
-                            <span class="badge ${isActive ? 'bg-success' : 'bg-danger'} status-badge">
-                                <i class="fas ${statusIcon} me-1"></i> ${statusText}
-                            </span>
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-2">
-                                <strong>อัปเดตล่าสุด:</strong> 
-                                <span>${deviceData.lastUpdated || '-'}</span>
-                            </div>
-                            <div class="mb-2">
-                                <strong>ระยะเวลาทำงาน:</strong> 
-                                <span>${formatUptime(deviceData.uptimeMinutes)}</span>
-                            </div>
-                            <div class="mb-2">
-                                <strong>รหัสอุปกรณ์:</strong> 
-                                <span>${deviceId}</span>
+            if (currentView === 'extraCompact') {
+                // Extra compact view - horizontal list items
+                return `
+                    <div class="col-12 col-device">
+                        <div class="card mb-1">
+                            <div class="card-body p-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge ${isActive ? 'bg-success' : 'bg-danger'} me-2">
+                                            <i class="fas ${statusIcon}"></i>
+                                        </span>
+                                        <strong>${deviceName}</strong>
+                                        <span class="text-muted ms-2 d-none d-md-inline">${deviceId}</span>
+                                    </div>
+                                    <div class="d-flex align-items-center small">
+                                        <span class="me-3 d-none d-md-inline">${formatUptime(deviceData.uptimeMinutes)}</span>
+                                        <span class="text-muted">${deviceData.lastUpdated ? deviceData.lastUpdated.split(' เวลา')[0] : '-'}</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
+            } else if (currentView === 'compact') {
+                // Compact view - smaller cards with all info
+                return `
+                    <div class="col-md-4 col-lg-3 device-card">
+                        <div class="card compact-view">
+                            <div class="card-header ${statusClass} d-flex justify-content-between align-items-center">
+                                <span class="text-truncate">${deviceName}</span>
+                                <span class="badge ${isActive ? 'bg-success' : 'bg-danger'} status-badge">
+                                    <i class="fas ${statusIcon}"></i>
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <div class="device-info">
+                                    <span class="device-info-label">อัปเดต:</span>
+                                    <span class="text-truncate">${deviceData.lastUpdated ? deviceData.lastUpdated.split(' เวลา')[1] : '-'}</span>
+                                </div>
+                                <div class="device-info">
+                                    <span class="device-info-label">ทำงาน:</span>
+                                    <span>${formatUptime(deviceData.uptimeMinutes)}</span>
+                                </div>
+                                <div class="device-info">
+                                    <span class="device-info-label">รหัส:</span>
+                                    <span class="text-truncate">${deviceId}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Normal view - standard cards
+                return `
+                    <div class="col-md-6 col-lg-4 device-card">
+                        <div class="card">
+                            <div class="card-header ${statusClass} d-flex justify-content-between align-items-center">
+                                <span>${deviceName}</span>
+                                <span class="badge ${isActive ? 'bg-success' : 'bg-danger'} status-badge">
+                                    <i class="fas ${statusIcon} me-1"></i> ${statusText}
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <div class="device-info">
+                                    <span class="device-info-label">อัปเดตล่าสุด:</span> 
+                                    <span>${deviceData.lastUpdated || '-'}</span>
+                                </div>
+                                <div class="device-info">
+                                    <span class="device-info-label">ระยะเวลาทำงาน:</span> 
+                                    <span>${formatUptime(deviceData.uptimeMinutes)}</span>
+                                </div>
+                                <div class="device-info">
+                                    <span class="device-info-label">รหัสอุปกรณ์:</span> 
+                                    <span>${deviceId}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
         }
 
         // Update device counts
@@ -265,14 +371,12 @@ function isDeviceActive(device) {
         // Filter devices based on search input
         function filterDevices() {
             const searchTerm = searchInput.value.toLowerCase();
-            const deviceCards = document.querySelectorAll('.device-card');
+            const deviceCards = document.querySelectorAll('.device-card, .col-device');
             
             deviceCards.forEach(card => {
-                const deviceName = card.querySelector('.card-header').textContent.toLowerCase();
-                const deviceId = card.querySelector('.card-body').textContent.toLowerCase();
-                
-                if (deviceName.includes(searchTerm) || deviceId.includes(searchTerm)) {
-                    card.style.display = 'block';
+                const cardText = card.textContent.toLowerCase();
+                if (cardText.includes(searchTerm)) {
+                    card.style.display = '';
                 } else {
                     card.style.display = 'none';
                 }
@@ -337,11 +441,44 @@ function isDeviceActive(device) {
                 });
         }
 
+        // Toggle view functions
+        function setNormalView() {
+            currentView = 'normal';
+            normalViewBtn.classList.add('active');
+            compactViewBtn.classList.remove('active');
+            extraCompactViewBtn.classList.remove('active');
+            devicesList.classList.remove('compact-view', 'extra-compact-view');
+            loadDevicesData();
+        }
+
+        function setCompactView() {
+            currentView = 'compact';
+            normalViewBtn.classList.remove('active');
+            compactViewBtn.classList.add('active');
+            extraCompactViewBtn.classList.remove('active');
+            devicesList.classList.add('compact-view');
+            devicesList.classList.remove('extra-compact-view');
+            loadDevicesData();
+        }
+
+        function setExtraCompactView() {
+            currentView = 'extraCompact';
+            normalViewBtn.classList.remove('active');
+            compactViewBtn.classList.remove('active');
+            extraCompactViewBtn.classList.add('active');
+            devicesList.classList.remove('compact-view');
+            devicesList.classList.add('extra-compact-view');
+            loadDevicesData();
+        }
+
         // Event Listeners
         document.addEventListener('DOMContentLoaded', loadDevicesData);
         refreshBtn.addEventListener('click', loadDevicesData);
         searchBtn.addEventListener('click', filterDevices);
         searchInput.addEventListener('keyup', filterDevices);
+        normalViewBtn.addEventListener('click', setNormalView);
+        compactViewBtn.addEventListener('click', setCompactView);
+        extraCompactViewBtn.addEventListener('click', setExtraCompactView);
 
         // Auto refresh every 5 minutes
         setInterval(loadDevicesData, 5 * 60 * 1000);
