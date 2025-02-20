@@ -64,22 +64,31 @@
             font-size: 0.75rem;
             color: #6c757d;
         }
-        .dropdown-menu {
-            max-height: 300px;
-            overflow-y: auto;
+        .edit-btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
         }
-        .dropdown-item {
-            padding: 0.5rem 1rem;
+        .device-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        .dropdown-item:active {
-            background-color: #f8f9fa;
-            color: #212529;
+        .device-name {
+            margin-right: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .device-item:hover {
-            background-color: #f8f9fa;
+        .save-name-btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
         }
-        #deviceDetailPanel {
-            transition: all 0.3s ease;
+        .name-edit-container {
+            display: none;
+            margin-top: 10px;
+        }
+        .small-badge {
+            font-size: 0.75rem;
         }
         @media (max-width: 768px) {
             .device-count {
@@ -136,7 +145,7 @@
             </div>
         </div>
 
-        <!-- Devices Dropdown Section -->
+        <!-- Devices List Section -->
         <div class="card mb-4">
             <div class="card-header bg-white">
                 <div class="d-flex justify-content-between align-items-center">
@@ -158,56 +167,35 @@
                     </div>
                 </div>
                 
-                <!-- Device Dropdown Container -->
-                <div id="deviceDropdownContainer" style="display: none;">
-                    <div class="device-dropdown-container mb-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="dropdown">
-                                <button class="btn btn-primary dropdown-toggle" type="button" id="deviceDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-tablet-alt me-2"></i>เลือกอุปกรณ์
-                                </button>
-                                <ul class="dropdown-menu" id="deviceDropdownMenu" aria-labelledby="deviceDropdown">
-                                    <!-- dropdown items จะถูกเพิ่มด้วย JavaScript -->
-                                </ul>
-                            </div>
-                            <span class="badge bg-primary" id="selectedDeviceCount">
-                                อุปกรณ์ทั้งหมด: 0
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <!-- Device Detail Panel -->
-                    <div class="card" id="deviceDetailPanel" style="display: none;">
-                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0" id="detailDeviceName">รายละเอียดอุปกรณ์</h5>
-                            <span class="badge" id="detailDeviceStatus"></span>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="editDeviceName" class="form-label"><strong>ชื่ออุปกรณ์:</strong></label>
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" id="editDeviceName" placeholder="ชื่ออุปกรณ์">
-                                            <button class="btn btn-success" id="saveDeviceNameBtn">
-                                                <i class="fas fa-save"></i> บันทึก
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <p><strong>อัปเดตล่าสุด:</strong> <span id="detailLastUpdated">-</span></p>
-                                    <p><strong>ระยะเวลาทำงาน:</strong> <span id="detailUptime">-</span></p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>รหัสอุปกรณ์:</strong> <span id="detailDeviceId">-</span></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Device Grid Container -->
+                <div id="deviceGrid" class="row"></div>
                 
                 <p class="last-checked text-center mt-3">
                     ข้อมูลล่าสุดเมื่อ: <span id="lastUpdatedTime">-</span>
                 </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Name Edit Modal -->
+    <div class="modal fade" id="nameEditModal" tabindex="-1" aria-labelledby="nameEditModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="nameEditModalLabel">แก้ไขชื่ออุปกรณ์</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="modalDeviceName" class="form-label">ชื่ออุปกรณ์</label>
+                        <input type="text" class="form-control" id="modalDeviceName">
+                        <div class="form-text" id="deviceIdDisplay"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn btn-primary" id="saveModalNameBtn">บันทึก</button>
+                </div>
             </div>
         </div>
     </div>
@@ -243,8 +231,7 @@
         const database = firebase.database();
 
         // DOM Elements
-        const deviceDropdownMenu = document.getElementById('deviceDropdownMenu');
-        const deviceDropdownContainer = document.getElementById('deviceDropdownContainer');
+        const deviceGrid = document.getElementById('deviceGrid');
         const loadingSpinner = document.getElementById('loadingSpinner');
         const activeCount = document.getElementById('activeCount');
         const inactiveCount = document.getElementById('inactiveCount');
@@ -253,11 +240,19 @@
         const refreshBtn = document.getElementById('refreshBtn');
         const searchInput = document.getElementById('searchInput');
         const searchBtn = document.getElementById('searchBtn');
-        const selectedDeviceCount = document.getElementById('selectedDeviceCount');
-        const deviceDetailPanel = document.getElementById('deviceDetailPanel');
+        const nameEditModal = new bootstrap.Modal(document.getElementById('nameEditModal'));
+        const modalDeviceName = document.getElementById('modalDeviceName');
+        const deviceIdDisplay = document.getElementById('deviceIdDisplay');
+        const saveModalNameBtn = document.getElementById('saveModalNameBtn');
 
         // Global variables
         let allDevices = {};
+        let deviceNames = {
+            // Hard-coded device names
+            '284BE07D56CD': 'จอประชาสัมพันธ์ชั้น 1',
+            '62D976E41310': 'จอประชาสัมพันธ์หน้าลิฟต์',
+            // เพิ่มชื่ออุปกรณ์อื่นๆ ตามต้องการ
+        };
 
         // Check if device is active based on isActive status
         function isDeviceActive(device) {
@@ -278,50 +273,49 @@
             }
         }
 
-        // Create dropdown item for each device
-        function createDropdownItem(deviceId, deviceData) {
+        // Create device card HTML
+        function createDeviceCard(deviceId, deviceData) {
             const isActive = isDeviceActive(deviceData);
-            const li = document.createElement('li');
-            
-            li.innerHTML = `
-                <a class="dropdown-item d-flex justify-content-between align-items-center device-item" 
-                   href="#" 
-                   data-device-id="${deviceId}">
-                    <span>${deviceData.deviceName || deviceId}</span>
-                    <span class="badge ${isActive ? 'bg-success' : 'bg-danger'} ms-2">
-                        <i class="fas ${isActive ? 'fa-check-circle' : 'fa-times-circle'} me-1"></i>
-                        ${isActive ? 'ออนไลน์' : 'ออฟไลน์'}
-                    </span>
-                </a>
-            `;
-            
-            return li;
-        }
-
-        // Show device detail when selected from dropdown
-        function showDeviceDetail(deviceId) {
-            const device = allDevices[deviceId];
-            if (!device) return;
-            
-            const isActive = isDeviceActive(device);
-            const statusClass = isActive ? 'bg-success' : 'bg-danger';
+            const statusClass = isActive ? 'device-active' : 'device-inactive';
             const statusText = isActive ? 'ออนไลน์' : 'ออฟไลน์';
             const statusIcon = isActive ? 'fa-check-circle' : 'fa-times-circle';
+            const deviceName = deviceData.deviceName || deviceNames[deviceId] || deviceId;
             
-            // อัปเดตข้อมูลในพาเนลรายละเอียด
-            document.getElementById('detailDeviceName').textContent = device.deviceName || deviceId;
-            document.getElementById('editDeviceName').value = device.deviceName || deviceId;
-            document.getElementById('detailDeviceStatus').className = `badge ${statusClass}`;
-            document.getElementById('detailDeviceStatus').innerHTML = `<i class="fas ${statusIcon} me-1"></i> ${statusText}`;
-            document.getElementById('detailLastUpdated').textContent = device.lastUpdated || '-';
-            document.getElementById('detailUptime').textContent = formatUptime(device.uptimeMinutes);
-            document.getElementById('detailDeviceId').textContent = deviceId;
-            
-            // เก็บ deviceId ปัจจุบันใน dataset ของปุ่มบันทึก
-            document.getElementById('saveDeviceNameBtn').dataset.deviceId = deviceId;
-            
-            // แสดงพาเนลรายละเอียด
-            deviceDetailPanel.style.display = 'block';
+            return `
+                <div class="col-md-6 col-lg-4 device-card mb-3">
+                    <div class="card h-100">
+                        <div class="card-header ${statusClass}">
+                            <div class="device-title">
+                                <span class="device-name" title="${deviceName}">${deviceName}</span>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-secondary edit-btn" 
+                                            data-device-id="${deviceId}" 
+                                            data-device-name="${deviceName}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <span class="badge ${isActive ? 'bg-success' : 'bg-danger'} status-badge">
+                                        <i class="fas ${statusIcon} me-1"></i> ${statusText}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <strong>อัปเดตล่าสุด:</strong> 
+                                <span>${deviceData.lastUpdated || '-'}</span>
+                            </div>
+                            <div class="mb-2">
+                                <strong>ระยะเวลาทำงาน:</strong> 
+                                <span>${formatUptime(deviceData.uptimeMinutes)}</span>
+                            </div>
+                            <div class="mb-0">
+                                <strong>รหัสอุปกรณ์:</strong> 
+                                <span class="small-badge badge bg-light text-dark">${deviceId}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         // Update device counts
@@ -341,40 +335,63 @@
             activeCount.textContent = active;
             inactiveCount.textContent = inactive;
             totalCount.textContent = total;
-            selectedDeviceCount.textContent = `อุปกรณ์ทั้งหมด: ${total}`;
         }
 
         // Filter devices based on search input
         function filterDevices() {
             const searchTerm = searchInput.value.toLowerCase().trim();
-            const dropdownItems = deviceDropdownMenu.querySelectorAll('.device-item');
+            const deviceCards = document.querySelectorAll('.device-card');
             
-            let visibleCount = 0;
-            
-            dropdownItems.forEach(item => {
-                const deviceName = item.querySelector('span:first-child').textContent.toLowerCase();
-                const deviceId = item.getAttribute('data-device-id').toLowerCase();
+            deviceCards.forEach(card => {
+                const deviceName = card.querySelector('.device-name').textContent.toLowerCase();
+                const deviceId = card.querySelector('.small-badge').textContent.toLowerCase();
                 
                 if (deviceName.includes(searchTerm) || deviceId.includes(searchTerm)) {
-                    item.parentElement.style.display = '';
-                    visibleCount++;
+                    card.style.display = '';
                 } else {
-                    item.parentElement.style.display = 'none';
+                    card.style.display = 'none';
                 }
             });
+        }
+        
+        // Open name edit modal
+        function openNameEditModal(deviceId, currentName) {
+            modalDeviceName.value = currentName;
+            deviceIdDisplay.textContent = `รหัสอุปกรณ์: ${deviceId}`;
+            saveModalNameBtn.setAttribute('data-device-id', deviceId);
+            nameEditModal.show();
+        }
+        
+        // Save device name
+        function saveDeviceName() {
+            const deviceId = saveModalNameBtn.getAttribute('data-device-id');
+            const newName = modalDeviceName.value.trim();
             
-            // ถ้าไม่พบอุปกรณ์ที่ตรงกับการค้นหา ให้ซ่อน device detail panel
-            if (visibleCount === 0 && deviceDetailPanel.style.display !== 'none') {
-                deviceDetailPanel.style.display = 'none';
+            if (!deviceId || !newName) return;
+            
+            // Save to hard-coded names
+            deviceNames[deviceId] = newName;
+            
+            // Update name in device data if exists
+            if (allDevices[deviceId]) {
+                allDevices[deviceId].deviceName = newName;
             }
+            
+            // Update UI
+            const deviceNameElem = document.querySelector(`.device-card .card-header .device-name[title="${deviceNames[deviceId]}"]`);
+            if (deviceNameElem) {
+                deviceNameElem.textContent = newName;
+                deviceNameElem.setAttribute('title', newName);
+            }
+            
+            // Close modal
+            nameEditModal.hide();
         }
 
         // Load devices data from Firebase
         function loadDevicesData() {
             loadingSpinner.style.display = 'flex';
-            deviceDropdownContainer.style.display = 'none';
-            deviceDetailPanel.style.display = 'none';
-            deviceDropdownMenu.innerHTML = '';
+            deviceGrid.innerHTML = '';
             
             const devicesRef = database.ref('device_status');
             
@@ -382,40 +399,45 @@
                 .then(snapshot => {
                     allDevices = snapshot.val() || {};
                     
+                    // Apply saved device names to loaded devices
+                    for (const deviceId in allDevices) {
+                        if (deviceNames[deviceId]) {
+                            allDevices[deviceId].deviceName = deviceNames[deviceId];
+                        }
+                    }
+                    
                     // Sort devices by active status and then by name
                     const sortedDevices = Object.entries(allDevices).sort((a, b) => {
                         const aActive = isDeviceActive(a[1]);
                         const bActive = isDeviceActive(b[1]);
                         
                         if (aActive === bActive) {
-                            return (a[1].deviceName || a[0]).localeCompare(b[1].deviceName || b[0]);
+                            return (a[1].deviceName || deviceNames[a[0]] || a[0]).localeCompare(
+                                b[1].deviceName || deviceNames[b[0]] || b[0]
+                            );
                         }
                         
                         return aActive ? -1 : 1;
                     });
                     
-                    // Add devices to dropdown
+                    // Create device cards
+                    let devicesHTML = '';
                     sortedDevices.forEach(([deviceId, deviceData]) => {
-                        const dropdownItem = createDropdownItem(deviceId, deviceData);
-                        deviceDropdownMenu.appendChild(dropdownItem);
+                        devicesHTML += createDeviceCard(deviceId, deviceData);
                     });
                     
-                    // Add event listeners to dropdown items
-                    const deviceItems = document.querySelectorAll('.device-item');
-                    deviceItems.forEach(item => {
-                        item.addEventListener('click', function(e) {
-                            e.preventDefault();
+                    deviceGrid.innerHTML = devicesHTML || '<div class="col text-center">ไม่พบข้อมูลอุปกรณ์</div>';
+                    
+                    // Add edit button event listeners
+                    document.querySelectorAll('.edit-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
                             const deviceId = this.getAttribute('data-device-id');
-                            showDeviceDetail(deviceId);
+                            const deviceName = this.getAttribute('data-device-name');
+                            openNameEditModal(deviceId, deviceName);
                         });
                     });
                     
                     updateCounts(allDevices);
-                    
-                    // Show first device details if there are any devices
-                    if (sortedDevices.length > 0) {
-                        showDeviceDetail(sortedDevices[0][0]);
-                    }
                     
                     // Update last checked time
                     const now = new Date();
@@ -428,68 +450,26 @@
                         second: '2-digit'
                     };
                     lastUpdatedTime.textContent = now.toLocaleString('th-TH', options) + ' น.';
-                    
-                    // Show dropdown container
-                    deviceDropdownContainer.style.display = 'block';
                 })
                 .catch(error => {
                     console.error("Error fetching data:", error);
-                    deviceDropdownContainer.innerHTML = `
-                        <div class="text-center text-danger">
+                    deviceGrid.innerHTML = `
+                        <div class="col text-center text-danger">
                             <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
                             <h5>เกิดข้อผิดพลาดในการโหลดข้อมูล</h5>
                             <p>${error.message}</p>
                         </div>
                     `;
-                    deviceDropdownContainer.style.display = 'block';
                 })
                 .finally(() => {
                     loadingSpinner.style.display = 'none';
                 });
         }
 
-        // ฟังก์ชันบันทึกชื่ออุปกรณ์ (Hard coded)
-        function saveDeviceName() {
-            const deviceId = document.getElementById('saveDeviceNameBtn').dataset.deviceId;
-            const newName = document.getElementById('editDeviceName').value.trim();
-            
-            if (!deviceId || !newName) return;
-            
-            // Hard-coded device names
-            const deviceNames = {
-                // ตัวอย่างชื่ออุปกรณ์เริ่มต้น
-                '284BE07D56CD': 'จอประชาสัมพันธ์ชั้น 1',
-                '62D976E41310': 'จอประชาสัมพันธ์หน้าลิฟต์',
-                // เพิ่มชื่ออุปกรณ์อื่นๆ ตามต้องการ
-            };
-            
-            // อัปเดตชื่อของอุปกรณ์ในรายการ hard-coded
-            deviceNames[deviceId] = newName;
-            
-            // อัปเดตชื่อในข้อมูลอุปกรณ์
-            if (allDevices[deviceId]) {
-                allDevices[deviceId].deviceName = newName;
-                
-                // อัปเดตชื่อในหน้ารายละเอียด
-                document.getElementById('detailDeviceName').textContent = newName;
-                
-                // อัปเดตชื่อใน dropdown
-                const dropdownItem = deviceDropdownMenu.querySelector(`[data-device-id="${deviceId}"] span:first-child`);
-                if (dropdownItem) {
-                    dropdownItem.textContent = newName;
-                }
-                
-                // แสดงข้อความแจ้งเตือนการบันทึกสำเร็จ
-                alert(`บันทึกชื่ออุปกรณ์สำเร็จ: ${newName}`);
-            }
-        }
-
         // Event Listeners
         document.addEventListener('DOMContentLoaded', () => {
             loadDevicesData();
-            
-            // เพิ่ม event listener สำหรับปุ่มบันทึกชื่ออุปกรณ์
-            document.getElementById('saveDeviceNameBtn').addEventListener('click', saveDeviceName);
+            saveModalNameBtn.addEventListener('click', saveDeviceName);
         });
         
         refreshBtn.addEventListener('click', loadDevicesData);
