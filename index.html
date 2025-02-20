@@ -430,35 +430,23 @@
             });
         }
 
-        // ฟังก์ชันสำหรับอัปเดตชื่ออุปกรณ์ใน Firebase
-       // ฟังก์ชันสำหรับอัปเดตชื่ออุปกรณ์ใน Firebase
+      
 function updateDeviceName(deviceId, newName) {
     const deviceRef = database.ref('device_status').child(deviceId);
     
-    // ดึงข้อมูลปัจจุบันก่อน เพื่อเก็บฟิลด์อื่นๆ ไว้
-    return deviceRef.get()
-        .then(snapshot => {
-            const currentData = snapshot.exists() ? snapshot.val() : {};
-            
-            // สร้างข้อมูลอัปเดตที่เก็บค่าเดิมและอัปเดตเฉพาะส่วนที่จำเป็น
-            const updateData = {
-                ...currentData,
-                deviceName: newName
-            };
-            
-            // อัปเดตข้อมูลไปยัง Firebase
-            return deviceRef.update(updateData);
-        })
-        .then(() => {
-            // รีเฟรชข้อมูลหลังการอัปเดต
-            loadDevicesData();
-            return true;
-        })
-        .catch(error => {
-            console.error("Error updating device name:", error);
-            alert(`เกิดข้อผิดพลาด: ${error.message}`);
-            return false;
-        });
+    return deviceRef.update({
+        deviceName: newName,
+        nameUpdatedByUser: true,              // สำคัญ: ต้องมี flag นี้ 
+        nameUpdatedAt: new Date().toISOString() // บอกเวลาที่มีการแก้ไข
+    }).then(() => {
+        // รีเฟรชข้อมูลหลังการอัปเดต
+        loadDevicesData();
+        return true;
+    }).catch(error => {
+        console.error("Error updating device name:", error);
+        alert(`เกิดข้อผิดพลาด: ${error.message}`);
+        return false;
+    });
 }
 
         // Load devices data from Firebase
