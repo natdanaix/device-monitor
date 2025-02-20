@@ -188,32 +188,10 @@
 
         // Check if device is active based on last update time
         // แก้ไขฟังก์ชัน isDeviceActive
+// แก้ไขฟังก์ชัน isDeviceActive ให้อิงเฉพาะค่า isActive เท่านั้น
 function isDeviceActive(device) {
-    // ตรวจสอบสถานะ isActive จาก Firebase ก่อน
-    if (device.isActive === false) return false;
-    if (device.isActive === true) {
-        // ถึงแม้ isActive จะเป็น true แต่ยังต้องตรวจสอบเวลาด้วย
-        const lastUpdated = new Date(device.lastUpdated);
-        const currentTime = new Date();
-        const timeDifference = currentTime - lastUpdated;
-        const minutesDifference = Math.floor(timeDifference / (1000 * 60));
-        
-        // อุปกรณ์จะถูกถือว่าออฟไลน์ถ้าไม่มีการอัปเดตนานเกิน 60 นาที
-        return minutesDifference <= 60;
-    }
-    
-    // กรณีที่ไม่มีค่า isActive กำหนด ให้ใช้เวลาอัปเดตล่าสุดเป็นตัวตัดสิน
-    if (device.lastUpdated) {
-        const lastUpdated = new Date(device.lastUpdated);
-        const currentTime = new Date();
-        const timeDifference = currentTime - lastUpdated;
-        const minutesDifference = Math.floor(timeDifference / (1000 * 60));
-        
-        return minutesDifference <= 60;
-    }
-    
-    // กรณีไม่มีข้อมูลทั้ง isActive และ lastUpdated ให้ถือว่าออฟไลน์
-    return false;
+    // ตรวจสอบสถานะ isActive จาก Firebase โดยตรง
+    return device.isActive === true;
 }
 
         // Format uptime in hours and minutes
