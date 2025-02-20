@@ -79,16 +79,14 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .save-name-btn {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.8rem;
-        }
-        .name-edit-container {
-            display: none;
-            margin-top: 10px;
-        }
         .small-badge {
             font-size: 0.75rem;
+        }
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1050;
         }
         @media (max-width: 768px) {
             .device-count {
@@ -200,6 +198,20 @@
         </div>
     </div>
 
+    <!-- Toast Notifications -->
+    <div class="toast-container">
+        <div class="toast" id="saveToast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header bg-success text-white">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong class="me-auto">บันทึกสำเร็จ</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                บันทึกการเปลี่ยนแปลงเรียบร้อยแล้ว
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="bg-light py-3 mt-5">
         <div class="container text-center">
@@ -244,15 +256,44 @@
         const modalDeviceName = document.getElementById('modalDeviceName');
         const deviceIdDisplay = document.getElementById('deviceIdDisplay');
         const saveModalNameBtn = document.getElementById('saveModalNameBtn');
+        const saveToast = new bootstrap.Toast(document.getElementById('saveToast'), {
+            delay: 3000
+        });
+        const toastMessage = document.getElementById('toastMessage');
 
-        // Global variables
-        let allDevices = {};
+        // รายชื่ออุปกรณ์เริ่มต้น (hard-coded)
         let deviceNames = {
             // Hard-coded device names
             '284BE07D56CD': 'จอประชาสัมพันธ์ชั้น 1',
             '62D976E41310': 'จอประชาสัมพันธ์หน้าลิฟต์',
             // เพิ่มชื่ออุปกรณ์อื่นๆ ตามต้องการ
         };
+
+        // โหลดข้อมูลชื่ออุปกรณ์จาก localStorage ถ้ามี
+        function loadSavedDeviceNames() {
+            const savedNames = localStorage.getItem('deviceNames');
+            if (savedNames) {
+                try {
+                    const parsedNames = JSON.parse(savedNames);
+                    // รวมชื่อที่บันทึกไว้กับชื่อเริ่มต้น (โดยให้ชื่อที่บันทึกมีความสำคัญมากกว่า)
+                    deviceNames = {...deviceNames, ...parsedNames};
+                } catch (error) {
+                    console.error('Error parsing saved device names:', error);
+                }
+            }
+        }
+
+        // บันทึกชื่ออุปกรณ์ลง localStorage
+        function saveDeviceNamesToStorage() {
+            try {
+                localStorage.setItem('deviceNames', JSON.stringify(deviceNames));
+            } catch (error) {
+                console.error('Error saving device names:', error);
+            }
+        }
+
+        // Global variables
+        let allDevices = {};
 
         // Check if device is active based on isActive status
         function isDeviceActive(device) {
@@ -279,7 +320,7 @@
             const statusClass = isActive ? 'device-active' : 'device-inactive';
             const statusText = isActive ? 'ออนไลน์' : 'ออฟไลน์';
             const statusIcon = isActive ? 'fa-check-circle' : 'fa-times-circle';
-            const deviceName = deviceData.deviceName || deviceNames[deviceId] || deviceId;
+            const deviceName = deviceNames[deviceId] || deviceId;
             
             return `
                 <div class="col-md-6 col-lg-4 device-card mb-3">
@@ -369,22 +410,26 @@
             
             if (!deviceId || !newName) return;
             
-            // Save to hard-coded names
+            // บันทึกชื่อใหม่
             deviceNames[deviceId] = newName;
             
-            // Update name in device data if exists
-            if (allDevices[deviceId]) {
-                allDevices[deviceId].deviceName = newName;
-            }
+            // บันทึกลง localStorage
+            saveDeviceNamesToStorage();
             
-            // Update UI
-            const deviceNameElem = document.querySelector(`.device-card .card-header .device-name[title="${deviceNames[deviceId]}"]`);
-            if (deviceNameElem) {
-                deviceNameElem.textContent = newName;
-                deviceNameElem.setAttribute('title', newName);
-            }
+            // อัปเดต UI
+            const deviceNameElements = document.querySelectorAll(`.device-card .edit-btn[data-device-id="${deviceId}"]`);
+            deviceNameElements.forEach(btn => {
+                const nameElement = btn.closest('.device-title').querySelector('.device-name');
+                nameElement.textContent = newName;
+                nameElement.setAttribute('title', newName);
+                btn.setAttribute('data-device-name', newName);
+            });
             
-            // Close modal
+            // แสดง toast notification
+            toastMessage.textContent = `บันทึกชื่อ "${newName}" เรียบร้อยแล้ว`;
+            saveToast.show();
+            
+            // ปิด modal
             nameEditModal.hide();
         }
 
@@ -399,22 +444,16 @@
                 .then(snapshot => {
                     allDevices = snapshot.val() || {};
                     
-                    // Apply saved device names to loaded devices
-                    for (const deviceId in allDevices) {
-                        if (deviceNames[deviceId]) {
-                            allDevices[deviceId].deviceName = deviceNames[deviceId];
-                        }
-                    }
-                    
                     // Sort devices by active status and then by name
                     const sortedDevices = Object.entries(allDevices).sort((a, b) => {
                         const aActive = isDeviceActive(a[1]);
                         const bActive = isDeviceActive(b[1]);
                         
                         if (aActive === bActive) {
-                            return (a[1].deviceName || deviceNames[a[0]] || a[0]).localeCompare(
-                                b[1].deviceName || deviceNames[b[0]] || b[0]
-                            );
+                            // ใช้ชื่อจาก deviceNames ถ้ามี หรือใช้รหัสอุปกรณ์
+                            const aName = deviceNames[a[0]] || a[0];
+                            const bName = deviceNames[b[0]] || b[0];
+                            return aName.localeCompare(bName);
                         }
                         
                         return aActive ? -1 : 1;
@@ -430,7 +469,8 @@
                     
                     // Add edit button event listeners
                     document.querySelectorAll('.edit-btn').forEach(btn => {
-                        btn.addEventListener('click', function() {
+                        btn.addEventListener('click', function(e) {
+                            e.preventDefault();
                             const deviceId = this.getAttribute('data-device-id');
                             const deviceName = this.getAttribute('data-device-name');
                             openNameEditModal(deviceId, deviceName);
@@ -468,7 +508,13 @@
 
         // Event Listeners
         document.addEventListener('DOMContentLoaded', () => {
+            // โหลดชื่ออุปกรณ์ที่บันทึกไว้
+            loadSavedDeviceNames();
+            
+            // โหลดข้อมูลอุปกรณ์
             loadDevicesData();
+            
+            // เพิ่ม event listener สำหรับปุ่มบันทึกชื่อ
             saveModalNameBtn.addEventListener('click', saveDeviceName);
         });
         
