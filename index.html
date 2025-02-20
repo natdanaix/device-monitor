@@ -64,32 +64,6 @@
             font-size: 0.75rem;
             color: #6c757d;
         }
-        .edit-btn {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.8rem;
-        }
-        .device-title {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .device-name {
-            margin-right: 10px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .save-name-btn {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.8rem;
-        }
-        .name-edit-container {
-            display: none;
-            margin-top: 10px;
-        }
-        .small-badge {
-            font-size: 0.75rem;
-        }
         @media (max-width: 768px) {
             .device-count {
                 text-align: center;
@@ -166,50 +140,10 @@
                         <span class="visually-hidden">กำลังโหลด...</span>
                     </div>
                 </div>
-                
-                <!-- Device Grid Container -->
-                <div id="deviceGrid" class="row"></div>
-                
+                <div id="devicesList" class="row"></div>
                 <p class="last-checked text-center mt-3">
                     ข้อมูลล่าสุดเมื่อ: <span id="lastUpdatedTime">-</span>
                 </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Name Edit Modal -->
-    <div class="modal fade" id="nameEditModal" tabindex="-1" aria-labelledby="nameEditModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="nameEditModalLabel">แก้ไขชื่ออุปกรณ์</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="modalDeviceName" class="form-label">ชื่ออุปกรณ์</label>
-                        <input type="text" class="form-control" id="modalDeviceName">
-                        <div class="form-text" id="deviceIdDisplay"></div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
-                    <button type="button" class="btn btn-primary" id="saveModalNameBtn">บันทึก</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-        <div id="saveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header bg-success text-white">
-                <i class="fas fa-check-circle me-2"></i>
-                <strong class="me-auto">แจ้งเตือน</strong>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">
-                บันทึกชื่ออุปกรณ์เรียบร้อยแล้ว
             </div>
         </div>
     </div>
@@ -221,9 +155,6 @@
         </div>
     </footer>
 
-    <!-- Bootstrap Bundle with Popper -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    
     <!-- Firebase -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-database-compat.min.js"></script>
@@ -245,7 +176,7 @@
         const database = firebase.database();
 
         // DOM Elements
-        const deviceGrid = document.getElementById('deviceGrid');
+        const devicesList = document.getElementById('devicesList');
         const loadingSpinner = document.getElementById('loadingSpinner');
         const activeCount = document.getElementById('activeCount');
         const inactiveCount = document.getElementById('inactiveCount');
@@ -254,20 +185,14 @@
         const refreshBtn = document.getElementById('refreshBtn');
         const searchInput = document.getElementById('searchInput');
         const searchBtn = document.getElementById('searchBtn');
-        const nameEditModal = new bootstrap.Modal(document.getElementById('nameEditModal'));
-        const modalDeviceName = document.getElementById('modalDeviceName');
-        const deviceIdDisplay = document.getElementById('deviceIdDisplay');
-        const saveModalNameBtn = document.getElementById('saveModalNameBtn');
-        const saveToast = new bootstrap.Toast(document.getElementById('saveToast'));
 
-        // Global variables
-        let allDevices = {};
-        let deviceNames = {};
-
-        // Check if device is active based on isActive status
-        function isDeviceActive(device) {
-            return device.isActive === true;
-        }
+        // Check if device is active based on last update time
+        // แก้ไขฟังก์ชัน isDeviceActive
+// แก้ไขฟังก์ชัน isDeviceActive ให้อิงเฉพาะค่า isActive เท่านั้น
+function isDeviceActive(device) {
+    // ตรวจสอบสถานะ isActive จาก Firebase โดยตรง
+    return device.isActive === true;
+}
 
         // Format uptime in hours and minutes
         function formatUptime(minutes) {
@@ -283,45 +208,21 @@
             }
         }
 
-        // Load device names from Firebase
-        function loadDeviceNames() {
-            return database.ref('device_names').once('value')
-                .then(snapshot => {
-                    const names = snapshot.val() || {};
-                    deviceNames = names;
-                    return names;
-                })
-                .catch(error => {
-                    console.error("Error loading device names:", error);
-                    return {};
-                });
-        }
-
         // Create device card HTML
         function createDeviceCard(deviceId, deviceData) {
             const isActive = isDeviceActive(deviceData);
             const statusClass = isActive ? 'device-active' : 'device-inactive';
             const statusText = isActive ? 'ออนไลน์' : 'ออฟไลน์';
             const statusIcon = isActive ? 'fa-check-circle' : 'fa-times-circle';
-            const deviceName = deviceData.deviceName || deviceNames[deviceId] || deviceId;
             
             return `
-                <div class="col-md-6 col-lg-4 device-card mb-3">
-                    <div class="card h-100">
-                        <div class="card-header ${statusClass}">
-                            <div class="device-title">
-                                <span class="device-name" title="${deviceName}">${deviceName}</span>
-                                <div>
-                                    <button class="btn btn-sm btn-outline-secondary edit-btn" 
-                                            data-device-id="${deviceId}" 
-                                            data-device-name="${deviceName}">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <span class="badge ${isActive ? 'bg-success' : 'bg-danger'} status-badge">
-                                        <i class="fas ${statusIcon} me-1"></i> ${statusText}
-                                    </span>
-                                </div>
-                            </div>
+                <div class="col-md-6 col-lg-4 device-card">
+                    <div class="card">
+                        <div class="card-header ${statusClass} d-flex justify-content-between align-items-center">
+                            <span>${deviceData.deviceName || deviceId}</span>
+                            <span class="badge ${isActive ? 'bg-success' : 'bg-danger'} status-badge">
+                                <i class="fas ${statusIcon} me-1"></i> ${statusText}
+                            </span>
                         </div>
                         <div class="card-body">
                             <div class="mb-2">
@@ -332,9 +233,9 @@
                                 <strong>ระยะเวลาทำงาน:</strong> 
                                 <span>${formatUptime(deviceData.uptimeMinutes)}</span>
                             </div>
-                            <div class="mb-0">
+                            <div class="mb-2">
                                 <strong>รหัสอุปกรณ์:</strong> 
-                                <span class="small-badge badge bg-light text-dark">${deviceId}</span>
+                                <span>${deviceId}</span>
                             </div>
                         </div>
                     </div>
@@ -363,129 +264,51 @@
 
         // Filter devices based on search input
         function filterDevices() {
-            const searchTerm = searchInput.value.toLowerCase().trim();
+            const searchTerm = searchInput.value.toLowerCase();
             const deviceCards = document.querySelectorAll('.device-card');
             
             deviceCards.forEach(card => {
-                const deviceName = card.querySelector('.device-name').textContent.toLowerCase();
-                const deviceId = card.querySelector('.small-badge').textContent.toLowerCase();
+                const deviceName = card.querySelector('.card-header').textContent.toLowerCase();
+                const deviceId = card.querySelector('.card-body').textContent.toLowerCase();
                 
                 if (deviceName.includes(searchTerm) || deviceId.includes(searchTerm)) {
-                    card.style.display = '';
+                    card.style.display = 'block';
                 } else {
                     card.style.display = 'none';
                 }
             });
         }
-        
-        // Open name edit modal
-        function openNameEditModal(deviceId, currentName) {
-            modalDeviceName.value = currentName;
-            deviceIdDisplay.textContent = `รหัสอุปกรณ์: ${deviceId}`;
-            saveModalNameBtn.setAttribute('data-device-id', deviceId);
-            nameEditModal.show();
-        }
-        
-        // Save device name to Firebase
-        function saveDeviceName() {
-            const deviceId = saveModalNameBtn.getAttribute('data-device-id');
-            const newName = modalDeviceName.value.trim();
-            
-            if (!deviceId || !newName) return;
-            
-            // Save to Firebase under device_names node
-            database.ref(`device_names/${deviceId}`).set(newName)
-                .then(() => {
-                    // Update local device names
-                    deviceNames[deviceId] = newName;
-                    
-                    // Update device data if exists
-                    if (allDevices[deviceId]) {
-                        // Just update UI, but not device_status in Firebase
-                        allDevices[deviceId].deviceName = newName;
-                    }
-                    
-                    // Update UI
-                    const deviceCards = document.querySelectorAll('.device-card');
-                    deviceCards.forEach(card => {
-                        const idBadge = card.querySelector('.small-badge');
-                        if (idBadge && idBadge.textContent === deviceId) {
-                            const nameElement = card.querySelector('.device-name');
-                            nameElement.textContent = newName;
-                            nameElement.setAttribute('title', newName);
-                            
-                            // Update edit button data attribute
-                            const editBtn = card.querySelector('.edit-btn');
-                            if (editBtn) {
-                                editBtn.setAttribute('data-device-name', newName);
-                            }
-                        }
-                    });
-                    
-                    // Show success toast
-                    saveToast.show();
-                    
-                    // Close modal
-                    nameEditModal.hide();
-                })
-                .catch(error => {
-                    console.error("Error saving device name:", error);
-                    alert(`เกิดข้อผิดพลาดในการบันทึก: ${error.message}`);
-                });
-        }
 
         // Load devices data from Firebase
         function loadDevicesData() {
             loadingSpinner.style.display = 'flex';
-            deviceGrid.innerHTML = '';
+            devicesList.innerHTML = '';
             
-            // First load device names, then load device status
-            loadDeviceNames()
-                .then(() => {
-                    return database.ref('device_status').once('value');
-                })
+            const devicesRef = database.ref('device_status');
+            
+            devicesRef.once('value')
                 .then(snapshot => {
-                    allDevices = snapshot.val() || {};
-                    
-                    // Apply saved device names to loaded devices
-                    for (const deviceId in allDevices) {
-                        if (deviceNames[deviceId]) {
-                            allDevices[deviceId].deviceName = deviceNames[deviceId];
-                        }
-                    }
+                    const devices = snapshot.val() || {};
+                    let devicesHTML = '';
                     
                     // Sort devices by active status and then by name
-                    const sortedDevices = Object.entries(allDevices).sort((a, b) => {
+                    const sortedDevices = Object.entries(devices).sort((a, b) => {
                         const aActive = isDeviceActive(a[1]);
                         const bActive = isDeviceActive(b[1]);
                         
                         if (aActive === bActive) {
-                            return (a[1].deviceName || deviceNames[a[0]] || a[0]).localeCompare(
-                                b[1].deviceName || deviceNames[b[0]] || b[0]
-                            );
+                            return (a[1].deviceName || a[0]).localeCompare(b[1].deviceName || b[0]);
                         }
                         
                         return aActive ? -1 : 1;
                     });
                     
-                    // Create device cards
-                    let devicesHTML = '';
                     sortedDevices.forEach(([deviceId, deviceData]) => {
                         devicesHTML += createDeviceCard(deviceId, deviceData);
                     });
                     
-                    deviceGrid.innerHTML = devicesHTML || '<div class="col text-center">ไม่พบข้อมูลอุปกรณ์</div>';
-                    
-                    // Add edit button event listeners
-                    document.querySelectorAll('.edit-btn').forEach(btn => {
-                        btn.addEventListener('click', function() {
-                            const deviceId = this.getAttribute('data-device-id');
-                            const deviceName = this.getAttribute('data-device-name');
-                            openNameEditModal(deviceId, deviceName);
-                        });
-                    });
-                    
-                    updateCounts(allDevices);
+                    devicesList.innerHTML = devicesHTML || '<div class="col text-center">ไม่พบข้อมูลอุปกรณ์</div>';
+                    updateCounts(devices);
                     
                     // Update last checked time
                     const now = new Date();
@@ -501,7 +324,7 @@
                 })
                 .catch(error => {
                     console.error("Error fetching data:", error);
-                    deviceGrid.innerHTML = `
+                    devicesList.innerHTML = `
                         <div class="col text-center text-danger">
                             <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
                             <h5>เกิดข้อผิดพลาดในการโหลดข้อมูล</h5>
@@ -515,11 +338,7 @@
         }
 
         // Event Listeners
-        document.addEventListener('DOMContentLoaded', () => {
-            loadDevicesData();
-            saveModalNameBtn.addEventListener('click', saveDeviceName);
-        });
-        
+        document.addEventListener('DOMContentLoaded', loadDevicesData);
         refreshBtn.addEventListener('click', loadDevicesData);
         searchBtn.addEventListener('click', filterDevices);
         searchInput.addEventListener('keyup', filterDevices);
