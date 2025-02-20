@@ -200,6 +200,20 @@
         </div>
     </div>
 
+    <!-- Toast Notification -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="saveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header bg-success text-white">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong class="me-auto">แจ้งเตือน</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                บันทึกชื่ออุปกรณ์เรียบร้อยแล้ว
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="bg-light py-3 mt-5">
         <div class="container text-center">
@@ -244,15 +258,11 @@
         const modalDeviceName = document.getElementById('modalDeviceName');
         const deviceIdDisplay = document.getElementById('deviceIdDisplay');
         const saveModalNameBtn = document.getElementById('saveModalNameBtn');
+        const saveToast = new bootstrap.Toast(document.getElementById('saveToast'));
 
         // Global variables
         let allDevices = {};
-        let deviceNames = {
-            // Hard-coded device names
-            '284BE07D56CD': 'จอประชาสัมพันธ์ชั้น 1',
-            '62D976E41310': 'จอประชาสัมพันธ์หน้าลิฟต์',
-            // เพิ่มชื่ออุปกรณ์อื่นๆ ตามต้องการ
-        };
+        let deviceNames = {};
 
         // Check if device is active based on isActive status
         function isDeviceActive(device) {
@@ -271,6 +281,20 @@
             } else {
                 return `${mins} นาที`;
             }
+        }
+
+        // Load device names from Firebase
+        function loadDeviceNames() {
+            return database.ref('device_names').once('value')
+                .then(snapshot => {
+                    const names = snapshot.val() || {};
+                    deviceNames = names;
+                    return names;
+                })
+                .catch(error => {
+                    console.error("Error loading device names:", error);
+                    return {};
+                });
         }
 
         // Create device card HTML
@@ -362,30 +386,52 @@
             nameEditModal.show();
         }
         
-        // Save device name
+        // Save device name to Firebase
         function saveDeviceName() {
             const deviceId = saveModalNameBtn.getAttribute('data-device-id');
             const newName = modalDeviceName.value.trim();
             
             if (!deviceId || !newName) return;
             
-            // Save to hard-coded names
-            deviceNames[deviceId] = newName;
-            
-            // Update name in device data if exists
-            if (allDevices[deviceId]) {
-                allDevices[deviceId].deviceName = newName;
-            }
-            
-            // Update UI
-            const deviceNameElem = document.querySelector(`.device-card .card-header .device-name[title="${deviceNames[deviceId]}"]`);
-            if (deviceNameElem) {
-                deviceNameElem.textContent = newName;
-                deviceNameElem.setAttribute('title', newName);
-            }
-            
-            // Close modal
-            nameEditModal.hide();
+            // Save to Firebase under device_names node
+            database.ref(`device_names/${deviceId}`).set(newName)
+                .then(() => {
+                    // Update local device names
+                    deviceNames[deviceId] = newName;
+                    
+                    // Update device data if exists
+                    if (allDevices[deviceId]) {
+                        // Just update UI, but not device_status in Firebase
+                        allDevices[deviceId].deviceName = newName;
+                    }
+                    
+                    // Update UI
+                    const deviceCards = document.querySelectorAll('.device-card');
+                    deviceCards.forEach(card => {
+                        const idBadge = card.querySelector('.small-badge');
+                        if (idBadge && idBadge.textContent === deviceId) {
+                            const nameElement = card.querySelector('.device-name');
+                            nameElement.textContent = newName;
+                            nameElement.setAttribute('title', newName);
+                            
+                            // Update edit button data attribute
+                            const editBtn = card.querySelector('.edit-btn');
+                            if (editBtn) {
+                                editBtn.setAttribute('data-device-name', newName);
+                            }
+                        }
+                    });
+                    
+                    // Show success toast
+                    saveToast.show();
+                    
+                    // Close modal
+                    nameEditModal.hide();
+                })
+                .catch(error => {
+                    console.error("Error saving device name:", error);
+                    alert(`เกิดข้อผิดพลาดในการบันทึก: ${error.message}`);
+                });
         }
 
         // Load devices data from Firebase
@@ -393,9 +439,11 @@
             loadingSpinner.style.display = 'flex';
             deviceGrid.innerHTML = '';
             
-            const devicesRef = database.ref('device_status');
-            
-            devicesRef.once('value')
+            // First load device names, then load device status
+            loadDeviceNames()
+                .then(() => {
+                    return database.ref('device_status').once('value');
+                })
                 .then(snapshot => {
                     allDevices = snapshot.val() || {};
                     
