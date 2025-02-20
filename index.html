@@ -202,9 +202,37 @@
         </div>
     </footer>
 
+    <!-- Modal สำหรับแก้ไขชื่ออุปกรณ์ -->
+    <div class="modal fade" id="editDeviceNameModal" tabindex="-1" aria-labelledby="editDeviceNameModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editDeviceNameModalLabel">แก้ไขชื่ออุปกรณ์</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editDeviceNameForm">
+                        <input type="hidden" id="editDeviceId">
+                        <div class="mb-3">
+                            <label for="editDeviceName" class="form-label">ชื่ออุปกรณ์</label>
+                            <input type="text" class="form-control" id="editDeviceName" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn btn-primary" id="saveDeviceNameBtn">บันทึก</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-database-compat.min.js"></script>
+    
+    <!-- Bootstrap JS สำหรับ Modal -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     
     <script>
         // Firebase configuration
@@ -281,9 +309,14 @@
                                         <strong>${deviceName}</strong>
                                         <span class="text-muted ms-2 d-none d-md-inline">${deviceId}</span>
                                     </div>
-                                    <div class="d-flex align-items-center small">
+                                    <div class="d-flex align-items-center">
                                         <span class="me-3 d-none d-md-inline">${formatUptime(deviceData.uptimeMinutes)}</span>
-                                        <span class="text-muted">${deviceData.lastUpdated ? deviceData.lastUpdated.split(' เวลา')[0] : '-'}</span>
+                                        <span class="text-muted me-2">${deviceData.lastUpdated ? deviceData.lastUpdated.split(' เวลา')[0] : '-'}</span>
+                                        <button class="btn btn-sm btn-outline-primary edit-name-btn" 
+                                            data-device-id="${deviceId}" 
+                                            data-device-name="${deviceName}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -314,6 +347,13 @@
                                     <span class="device-info-label">รหัส:</span>
                                     <span class="text-truncate">${deviceId}</span>
                                 </div>
+                                <div class="d-flex justify-content-end mt-1">
+                                    <button class="btn btn-sm btn-outline-primary edit-name-btn" 
+                                            data-device-id="${deviceId}" 
+                                            data-device-name="${deviceName}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -341,6 +381,13 @@
                                 <div class="device-info">
                                     <span class="device-info-label">รหัสอุปกรณ์:</span> 
                                     <span>${deviceId}</span>
+                                </div>
+                                <div class="device-info d-flex justify-content-between align-items-center mt-2">
+                                    <button class="btn btn-sm btn-outline-primary edit-name-btn" 
+                                            data-device-id="${deviceId}" 
+                                            data-device-name="${deviceName}">
+                                        <i class="fas fa-edit me-1"></i> แก้ไขชื่อ
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -380,6 +427,25 @@
                 } else {
                     card.style.display = 'none';
                 }
+            });
+        }
+
+        // ฟังก์ชันสำหรับอัปเดตชื่ออุปกรณ์ใน Firebase
+        function updateDeviceName(deviceId, newName) {
+            const deviceRef = database.ref('device_status').child(deviceId);
+            
+            return deviceRef.update({
+                deviceName: newName,
+                nameUpdatedByUser: true,              // เพิ่มฟิลด์นี้เพื่อระบุว่าชื่อถูกตั้งโดยผู้ใช้ 
+                nameUpdatedAt: new Date().toISOString() // เพิ่มเวลาที่อัปเดต
+            }).then(() => {
+                // รีเฟรชข้อมูลหลังการอัปเดต
+                loadDevicesData();
+                return true;
+            }).catch(error => {
+                console.error("Error updating device name:", error);
+                alert(`เกิดข้อผิดพลาด: ${error.message}`);
+                return false;
             });
         }
 
@@ -470,6 +536,64 @@
             devicesList.classList.add('extra-compact-view');
             loadDevicesData();
         }
+
+        // Setup edit name modal
+        const editDeviceNameModal = new bootstrap.Modal(document.getElementById('editDeviceNameModal'));
+        const editDeviceNameForm = document.getElementById('editDeviceNameForm');
+        const editDeviceIdInput = document.getElementById('editDeviceId');
+        const editDeviceNameInput = document.getElementById('editDeviceName');
+        const saveDeviceNameBtn = document.getElementById('saveDeviceNameBtn');
+
+        // Event delegation for edit buttons (since cards are dynamically created)
+        devicesList.addEventListener('click', event => {
+            const editBtn = event.target.closest('.edit-name-btn');
+            if (!editBtn) return;
+            
+            const deviceId = editBtn.dataset.deviceId;
+            const currentName = editBtn.dataset.deviceName;
+            
+            // Populate modal
+            editDeviceIdInput.value = deviceId;
+            editDeviceNameInput.value = currentName;
+            
+            // Show modal
+            editDeviceNameModal.show();
+        });
+
+        // Save button click handler
+        saveDeviceNameBtn.addEventListener('click', () => {
+            if (editDeviceNameForm.checkValidity()) {
+                const deviceId = editDeviceIdInput.value;
+                const newName = editDeviceNameInput.value.trim();
+                
+                if (newName) {
+                    // Show loading state
+                    saveDeviceNameBtn.disabled = true;
+                    saveDeviceNameBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> กำลังบันทึก...';
+                    
+                    updateDeviceName(deviceId, newName)
+                        .then(success => {
+                            if (success) {
+                                editDeviceNameModal.hide();
+                            }
+                        })
+                        .finally(() => {
+                            // Reset button state
+                            saveDeviceNameBtn.disabled = false;
+                            saveDeviceNameBtn.innerHTML = 'บันทึก';
+                        });
+                }
+            } else {
+                // Trigger HTML5 validation
+                editDeviceNameForm.reportValidity();
+            }
+        });
+
+        // Handle form submission (for Enter key)
+        editDeviceNameForm.addEventListener('submit', event => {
+            event.preventDefault();
+            saveDeviceNameBtn.click();
+        });
 
         // Event Listeners
         document.addEventListener('DOMContentLoaded', loadDevicesData);
