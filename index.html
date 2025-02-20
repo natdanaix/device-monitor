@@ -1,505 +1,487 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="th">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2487.6">
-  <style type="text/css">
-    body {background-color: #f2f2f2}
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 15.0px Thonburi; color: #ffffff; -webkit-text-stroke: #ffffff; background-color: #0f52fc}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 15.0px Thonburi; color: #ffffff; -webkit-text-stroke: #ffffff; background-color: #0f52fc; min-height: 20.0px}
-    span.s1 {font-kerning: none}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบติดตามสถานะอุปกรณ์</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f5f5f5;
+        }
+        .card {
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+            margin-bottom: 12px;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+        }
+        .card-header {
+            border-radius: 8px 8px 0 0 !important;
+            font-weight: bold;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
+        }
+        .device-active {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .device-inactive {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        .device-count {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        .timestamp {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-align: right;
+            margin-top: 10px;
+        }
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .status-badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.4rem;
+        }
+        .card-body {
+            padding: 0.75rem;
+            font-size: 0.85rem;
+        }
+        .device-info {
+            margin-bottom: 0.4rem;
+        }
+        .device-info-label {
+            font-weight: 500;
+            margin-right: 0.3rem;
+            width: 42%;
+            display: inline-block;
+        }
+        .last-checked {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+        .compact-view .card-header {
+            padding: 0.4rem 0.6rem;
+            font-size: 0.8rem;
+        }
+        .compact-view .card-body {
+            padding: 0.6rem;
+        }
+        .compact-view .device-info {
+            margin-bottom: 0.25rem;
+            display: flex;
+            flex-wrap: nowrap;
+            font-size: 0.75rem;
+        }
+        @media (max-width: 768px) {
+            .device-count {
+                text-align: center;
+            }
+        }
+        /* View toggle buttons */
+        .view-toggle {
+            margin-bottom: 1rem;
+        }
+        /* Extra compact view */
+        .extra-compact-view .col-device {
+            margin-bottom: 8px;
+        }
+    </style>
 </head>
 <body>
-<p class="p1"><span class="s1"><b>&lt;!DOCTYPE html&gt;</b></span></p>
-<p class="p1"><span class="s1"><b>&lt;html lang="th"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b>&lt;head&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;title&gt;ระบบติดตามสถานะอุปกรณ์&lt;/title&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;!-- Bootstrap CSS --&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;!-- Font Awesome --&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;style&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>body {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>font-family: 'Sarabun', sans-serif;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>background-color: #f5f5f5;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>.card {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>border-radius: 8px;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>margin-bottom: 12px;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>transition: transform 0.2s;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>.card:hover {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>transform: translateY(-3px);</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>.card-header {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>border-radius: 8px 8px 0 0 !important;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>font-weight: bold;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>padding: 0.5rem 0.75rem;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>font-size: 0.85rem;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>.device-active {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>background-color: #d4edda;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>color: #155724;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>.device-inactive {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>background-color: #f8d7da;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>color: #721c24;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>.loading-spinner {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>display: flex;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>justify-content: center;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>align-items: center;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>height: 200px;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>.device-count {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>font-size: 1.2rem;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>margin-bottom: 15px;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>.timestamp {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>font-size: 0.8rem;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>color: #6c757d;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>text-align: right;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>margin-top: 10px;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>.navbar-brand {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>font-weight: bold;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>.status-badge {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>font-size: 0.7rem;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>padding: 0.25rem 0.4rem;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>.card-body {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>padding: 0.75rem;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>font-size: 0.85rem;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>.device-info {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>margin-bottom: 0.4rem;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>.device-info-label {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>font-weight: 500;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>margin-right: 0.3rem;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>width: 42%;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>display: inline-block;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>.last-checked {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>font-size: 0.75rem;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>color: #6c757d;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>.compact-view .card-header {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>padding: 0.4rem 0.6rem;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>font-size: 0.8rem;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>.compact-view .card-body {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>padding: 0.6rem;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>.compact-view .device-info {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>margin-bottom: 0.25rem;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>display: flex;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>flex-wrap: nowrap;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>font-size: 0.75rem;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>@media (max-width: 768px) {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>.device-count {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>text-align: center;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>/* View toggle buttons */</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>.view-toggle {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>margin-bottom: 1rem;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>/* Extra compact view */</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>.extra-compact-view .col-device {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>margin-bottom: 8px;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;/style&gt;</b></span></p>
-<p class="p1"><span class="s1"><b>&lt;/head&gt;</b></span></p>
-<p class="p1"><span class="s1"><b>&lt;body&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;!-- Navbar --&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-3"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>&lt;div class="container"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;a class="navbar-brand" href="#"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>&lt;i class="fas fa-tv me-2"&gt;&lt;/i&gt;ระบบติดตามสถานะอุปกรณ์</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;/a&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;button class="btn btn-light btn-sm" id="refreshBtn"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>&lt;i class="fas fa-sync-alt me-1"&gt;&lt;/i&gt; รีเฟรช</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;/button&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;/nav&gt;</b></span></p>
-<p class="p2"><span class="s1"><b></b></span><br></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;div class="container"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>&lt;!-- Summary Section --&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>&lt;div class="row mb-3"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;div class="col-md-4 mb-2"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>&lt;div class="card bg-white h-100"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>&lt;div class="card-body py-2"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;h5 class="card-title text-primary mb-1"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;i class="fas fa-check-circle me-1"&gt;&lt;/i&gt;อุปกรณ์ออนไลน์</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;/h5&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;h2 class="display-5 fw-bold mb-0" id="activeCount"&gt;0&lt;/h2&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;div class="col-md-4 mb-2"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>&lt;div class="card bg-white h-100"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>&lt;div class="card-body py-2"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;h5 class="card-title text-danger mb-1"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;i class="fas fa-times-circle me-1"&gt;&lt;/i&gt;อุปกรณ์ออฟไลน์</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;/h5&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;h2 class="display-5 fw-bold mb-0" id="inactiveCount"&gt;0&lt;/h2&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;div class="col-md-4 mb-2"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>&lt;div class="card bg-white h-100"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>&lt;div class="card-body py-2"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;h5 class="card-title text-info mb-1"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;i class="fas fa-tablet-alt me-1"&gt;&lt;/i&gt;อุปกรณ์ทั้งหมด</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;/h5&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;h2 class="display-5 fw-bold mb-0" id="totalCount"&gt;0&lt;/h2&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>&lt;/div&gt;</b></span></p>
-<p class="p2"><span class="s1"><b></b></span><br></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>&lt;!-- Devices List Section --&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>&lt;div class="card mb-4"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;div class="card-header bg-white"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>&lt;div class="d-flex justify-content-between align-items-center flex-wrap"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>&lt;h5 class="mb-0"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;i class="fas fa-list me-2"&gt;&lt;/i&gt;รายการอุปกรณ์</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>&lt;/h5&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>&lt;div class="d-flex align-items-center mt-2 mt-md-0"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;div class="btn-group view-toggle me-2"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;button class="btn btn-sm btn-outline-primary active" id="normalViewBtn"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;i class="fas fa-th-large"&gt;&lt;/i&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;/button&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;button class="btn btn-sm btn-outline-primary" id="compactViewBtn"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;i class="fas fa-th"&gt;&lt;/i&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;/button&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;button class="btn btn-sm btn-outline-primary" id="extraCompactViewBtn"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;i class="fas fa-list"&gt;&lt;/i&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;/button&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;div class="input-group" style="max-width: 200px;"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;input type="text" id="searchInput" class="form-control form-control-sm" placeholder="ค้นหาอุปกรณ์..."&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;button class="btn btn-sm btn-outline-secondary" type="button" id="searchBtn"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;i class="fas fa-search"&gt;&lt;/i&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;/button&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;div class="card-body"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>&lt;div class="loading-spinner" id="loadingSpinner"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>&lt;div class="spinner-border text-primary" role="status"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;span class="visually-hidden"&gt;กำลังโหลด...&lt;/span&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>&lt;div id="devicesList" class="row g-2"&gt;&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>&lt;p class="last-checked text-center mt-3"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>ข้อมูลล่าสุดเมื่อ: &lt;span id="lastUpdatedTime"&gt;-&lt;/span&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>&lt;/p&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;/div&gt;</b></span></p>
-<p class="p2"><span class="s1"><b></b></span><br></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;!-- Footer --&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;footer class="bg-light py-2 mt-4"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>&lt;div class="container text-center"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;p class="mb-0"&gt;&amp;copy; 2025 ระบบติดตามสถานะอุปกรณ์ | &lt;a href="#" target="_blank"&gt;เอกสาร&lt;/a&gt;&lt;/p&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;/footer&gt;</b></span></p>
-<p class="p2"><span class="s1"><b></b></span><br></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;!-- Firebase --&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"&gt;&lt;/script&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-database-compat.min.js"&gt;&lt;/script&gt;</b></span></p>
-<p class="p2"><span class="s1"><b><span class="Apple-converted-space">    </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;script&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>// Firebase configuration</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>const firebaseConfig = {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>apiKey: "AIzaSyBbkMXGQFEjrvPSdl6vAQ8-zmAMAdbOFdg",</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>authDomain: "zsinage.firebaseapp.com",</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>databaseURL: "https://zsinage-default-rtdb.asia-southeast1.firebasedatabase.app",</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>projectId: "zsinage",</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>storageBucket: "zsinage.firebasestorage.app",</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>messagingSenderId: "811769710688",</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>appId: "1:811769710688:android:a4541d48fa806296791b05"</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>};</b></span></p>
-<p class="p2"><span class="s1"><b></b></span><br></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>// Initialize Firebase</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>firebase.initializeApp(firebaseConfig);</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>const database = firebase.database();</b></span></p>
-<p class="p2"><span class="s1"><b></b></span><br></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>// DOM Elements</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>const devicesList = document.getElementById('devicesList');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>const loadingSpinner = document.getElementById('loadingSpinner');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>const activeCount = document.getElementById('activeCount');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>const inactiveCount = document.getElementById('inactiveCount');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>const totalCount = document.getElementById('totalCount');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>const lastUpdatedTime = document.getElementById('lastUpdatedTime');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>const refreshBtn = document.getElementById('refreshBtn');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>const searchInput = document.getElementById('searchInput');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>const searchBtn = document.getElementById('searchBtn');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>const normalViewBtn = document.getElementById('normalViewBtn');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>const compactViewBtn = document.getElementById('compactViewBtn');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>const extraCompactViewBtn = document.getElementById('extraCompactViewBtn');</b></span></p>
-<p class="p2"><span class="s1"><b></b></span><br></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>// View state</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>let currentView = 'normal'; // normal, compact, extraCompact</b></span></p>
-<p class="p2"><span class="s1"><b></b></span><br></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>// Check if device is active based on last update time</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>function isDeviceActive(device) {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>// ตรวจสอบสถานะ isActive จาก Firebase โดยตรง</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>return device.isActive === true;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p2"><span class="s1"><b></b></span><br></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>// Format uptime in hours and minutes</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>function formatUptime(minutes) {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>if (!minutes &amp;&amp; minutes !== 0) return "-";</b></span></p>
-<p class="p2"><span class="s1"><b><span class="Apple-converted-space">            </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>const hours = Math.floor(minutes / 60);</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>const mins = minutes % 60;</b></span></p>
-<p class="p2"><span class="s1"><b><span class="Apple-converted-space">            </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>if (hours &gt; 0) {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>return `${hours} ชม. ${mins} น.`;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>} else {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>return `${mins} นาที`;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p2"><span class="s1"><b></b></span><br></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>// Create device card HTML based on current view</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>function createDeviceCard(deviceId, deviceData) {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>const isActive = isDeviceActive(deviceData);</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>const statusClass = isActive ? 'device-active' : 'device-inactive';</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>const statusText = isActive ? 'ออนไลน์' : 'ออฟไลน์';</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>const statusIcon = isActive ? 'fa-check-circle' : 'fa-times-circle';</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>const deviceName = deviceData.deviceName || deviceId;</b></span></p>
-<p class="p2"><span class="s1"><b><span class="Apple-converted-space">            </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>if (currentView === 'extraCompact') {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>// Extra compact view - horizontal list items</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>return `</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>&lt;div class="col-12 col-device"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;div class="card mb-1"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;div class="card-body p-2"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;div class="d-flex justify-content-between align-items-center"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                    </span>&lt;div class="d-flex align-items-center"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                        </span>&lt;span class="badge ${isActive ? 'bg-success' : 'bg-danger'} me-2"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                            </span>&lt;i class="fas ${statusIcon}"&gt;&lt;/i&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                        </span>&lt;/span&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                        </span>&lt;strong&gt;${deviceName}&lt;/strong&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                        </span>&lt;span class="text-muted ms-2 d-none d-md-inline"&gt;${deviceId}&lt;/span&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                    </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                    </span>&lt;div class="d-flex align-items-center small"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                        </span>&lt;span class="me-3 d-none d-md-inline"&gt;${formatUptime(deviceData.uptimeMinutes)}&lt;/span&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                        </span>&lt;span class="text-muted"&gt;${deviceData.lastUpdated ? deviceData.lastUpdated.split(' เวลา')[0] : '-'}&lt;/span&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                    </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>`;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>} else if (currentView === 'compact') {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>// Compact view - smaller cards with all info</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>return `</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>&lt;div class="col-md-4 col-lg-3 device-card"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;div class="card compact-view"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;div class="card-header ${statusClass} d-flex justify-content-between align-items-center"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;span class="text-truncate"&gt;${deviceName}&lt;/span&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;span class="badge ${isActive ? 'bg-success' : 'bg-danger'} status-badge"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                    </span>&lt;i class="fas ${statusIcon}"&gt;&lt;/i&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;/span&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;div class="card-body"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;div class="device-info"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                    </span>&lt;span class="device-info-label"&gt;อัปเดต:&lt;/span&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                    </span>&lt;span class="text-truncate"&gt;${deviceData.lastUpdated ? deviceData.lastUpdated.split(' เวลา')[1] : '-'}&lt;/span&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;div class="device-info"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                    </span>&lt;span class="device-info-label"&gt;ทำงาน:&lt;/span&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                    </span>&lt;span&gt;${formatUptime(deviceData.uptimeMinutes)}&lt;/span&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;div class="device-info"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                    </span>&lt;span class="device-info-label"&gt;รหัส:&lt;/span&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                    </span>&lt;span class="text-truncate"&gt;${deviceId}&lt;/span&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>`;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>} else {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>// Normal view - standard cards</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>return `</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>&lt;div class="col-md-6 col-lg-4 device-card"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;div class="card"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;div class="card-header ${statusClass} d-flex justify-content-between align-items-center"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;span&gt;${deviceName}&lt;/span&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;span class="badge ${isActive ? 'bg-success' : 'bg-danger'} status-badge"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                    </span>&lt;i class="fas ${statusIcon} me-1"&gt;&lt;/i&gt; ${statusText}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;/span&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;div class="card-body"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;div class="device-info"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                    </span>&lt;span class="device-info-label"&gt;อัปเดตล่าสุด:&lt;/span&gt;<span class="Apple-converted-space"> </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                    </span>&lt;span&gt;${deviceData.lastUpdated || '-'}&lt;/span&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;div class="device-info"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                    </span>&lt;span class="device-info-label"&gt;ระยะเวลาทำงาน:&lt;/span&gt;<span class="Apple-converted-space"> </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                    </span>&lt;span&gt;${formatUptime(deviceData.uptimeMinutes)}&lt;/span&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;div class="device-info"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                    </span>&lt;span class="device-info-label"&gt;รหัสอุปกรณ์:&lt;/span&gt;<span class="Apple-converted-space"> </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                    </span>&lt;span&gt;${deviceId}&lt;/span&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                                </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>`;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p2"><span class="s1"><b></b></span><br></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>// Update device counts</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>function updateCounts(devices) {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>let active = 0;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>let inactive = 0;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>let total = Object.keys(devices).length;</b></span></p>
-<p class="p2"><span class="s1"><b><span class="Apple-converted-space">            </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>for (const deviceId in devices) {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>if (isDeviceActive(devices[deviceId])) {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>active++;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>} else {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>inactive++;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>}</b></span></p>
-<p class="p2"><span class="s1"><b><span class="Apple-converted-space">            </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>activeCount.textContent = active;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>inactiveCount.textContent = inactive;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>totalCount.textContent = total;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p2"><span class="s1"><b></b></span><br></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>// Filter devices based on search input</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>function filterDevices() {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>const searchTerm = searchInput.value.toLowerCase();</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>const deviceCards = document.querySelectorAll('.device-card, .col-device');</b></span></p>
-<p class="p2"><span class="s1"><b><span class="Apple-converted-space">            </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>deviceCards.forEach(card =&gt; {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>const cardText = card.textContent.toLowerCase();</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>if (cardText.includes(searchTerm)) {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>card.style.display = '';</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>} else {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>card.style.display = 'none';</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>}</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>});</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p2"><span class="s1"><b></b></span><br></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>// Load devices data from Firebase</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>function loadDevicesData() {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>loadingSpinner.style.display = 'flex';</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>devicesList.innerHTML = '';</b></span></p>
-<p class="p2"><span class="s1"><b><span class="Apple-converted-space">            </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>const devicesRef = database.ref('device_status');</b></span></p>
-<p class="p2"><span class="s1"><b><span class="Apple-converted-space">            </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>devicesRef.once('value')</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>.then(snapshot =&gt; {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>const devices = snapshot.val() || {};</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>let devicesHTML = '';</b></span></p>
-<p class="p2"><span class="s1"><b><span class="Apple-converted-space">                    </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>// Sort devices by active status and then by name</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>const sortedDevices = Object.entries(devices).sort((a, b) =&gt; {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>const aActive = isDeviceActive(a[1]);</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>const bActive = isDeviceActive(b[1]);</b></span></p>
-<p class="p2"><span class="s1"><b><span class="Apple-converted-space">                        </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>if (aActive === bActive) {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>return (a[1].deviceName || a[0]).localeCompare(b[1].deviceName || b[0]);</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>}</b></span></p>
-<p class="p2"><span class="s1"><b><span class="Apple-converted-space">                        </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>return aActive ? -1 : 1;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>});</b></span></p>
-<p class="p2"><span class="s1"><b><span class="Apple-converted-space">                    </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>sortedDevices.forEach(([deviceId, deviceData]) =&gt; {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>devicesHTML += createDeviceCard(deviceId, deviceData);</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>});</b></span></p>
-<p class="p2"><span class="s1"><b><span class="Apple-converted-space">                    </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>devicesList.innerHTML = devicesHTML || '&lt;div class="col text-center"&gt;ไม่พบข้อมูลอุปกรณ์&lt;/div&gt;';</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>updateCounts(devices);</b></span></p>
-<p class="p2"><span class="s1"><b><span class="Apple-converted-space">                    </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>// Update last checked time</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>const now = new Date();</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>const options = {<span class="Apple-converted-space"> </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>year: 'numeric',<span class="Apple-converted-space"> </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>month: 'long',<span class="Apple-converted-space"> </span></b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>day: 'numeric',</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>hour: '2-digit',</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>minute: '2-digit',</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>second: '2-digit'</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>};</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>lastUpdatedTime.textContent = now.toLocaleString('th-TH', options) + ' น.';</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>})</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>.catch(error =&gt; {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>console.error("Error fetching data:", error);</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>devicesList.innerHTML = `</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;div class="col text-center text-danger"&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;i class="fas fa-exclamation-circle fa-3x mb-3"&gt;&lt;/i&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;h5&gt;เกิดข้อผิดพลาดในการโหลดข้อมูล&lt;/h5&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                            </span>&lt;p&gt;${error.message}&lt;/p&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                        </span>&lt;/div&gt;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>`;</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>})</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>.finally(() =&gt; {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                    </span>loadingSpinner.style.display = 'none';</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">                </span>});</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p2"><span class="s1"><b></b></span><br></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>// Toggle view functions</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>function setNormalView() {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>currentView = 'normal';</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>normalViewBtn.classList.add('active');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>compactViewBtn.classList.remove('active');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>extraCompactViewBtn.classList.remove('active');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>devicesList.classList.remove('compact-view', 'extra-compact-view');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>loadDevicesData();</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p2"><span class="s1"><b></b></span><br></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>function setCompactView() {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>currentView = 'compact';</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>normalViewBtn.classList.remove('active');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>compactViewBtn.classList.add('active');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>extraCompactViewBtn.classList.remove('active');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>devicesList.classList.add('compact-view');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>devicesList.classList.remove('extra-compact-view');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>loadDevicesData();</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p2"><span class="s1"><b></b></span><br></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>function setExtraCompactView() {</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>currentView = 'extraCompact';</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>normalViewBtn.classList.remove('active');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>compactViewBtn.classList.remove('active');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>extraCompactViewBtn.classList.add('active');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>devicesList.classList.remove('compact-view');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>devicesList.classList.add('extra-compact-view');</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">            </span>loadDevicesData();</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></p>
-<p class="p2"><span class="s1"><b></b></span><br></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>// Event Listeners</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>document.addEventListener('DOMContentLoaded', loadDevicesData);</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>refreshBtn.addEventListener('click', loadDevicesData);</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>searchBtn.addEventListener('click', filterDevices);</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>searchInput.addEventListener('keyup', filterDevices);</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>normalViewBtn.addEventListener('click', setNormalView);</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>compactViewBtn.addEventListener('click', setCompactView);</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>extraCompactViewBtn.addEventListener('click', setExtraCompactView);</b></span></p>
-<p class="p2"><span class="s1"><b></b></span><br></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>// Auto refresh every 5 minutes</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">        </span>setInterval(loadDevicesData, 5 * 60 * 1000);</b></span></p>
-<p class="p1"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;/script&gt;</b></span></p>
-<p class="p1"><span class="s1"><b>&lt;/body&gt;</b></span></p>
-<p class="p1"><span class="s1"><b>&lt;/html&gt;</b></span></p>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-3">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-tv me-2"></i>ระบบติดตามสถานะอุปกรณ์
+            </a>
+            <button class="btn btn-light btn-sm" id="refreshBtn">
+                <i class="fas fa-sync-alt me-1"></i> รีเฟรช
+            </button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Summary Section -->
+        <div class="row mb-3">
+            <div class="col-md-4 mb-2">
+                <div class="card bg-white h-100">
+                    <div class="card-body py-2">
+                        <h5 class="card-title text-primary mb-1">
+                            <i class="fas fa-check-circle me-1"></i>อุปกรณ์ออนไลน์
+                        </h5>
+                        <h2 class="display-5 fw-bold mb-0" id="activeCount">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-2">
+                <div class="card bg-white h-100">
+                    <div class="card-body py-2">
+                        <h5 class="card-title text-danger mb-1">
+                            <i class="fas fa-times-circle me-1"></i>อุปกรณ์ออฟไลน์
+                        </h5>
+                        <h2 class="display-5 fw-bold mb-0" id="inactiveCount">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-2">
+                <div class="card bg-white h-100">
+                    <div class="card-body py-2">
+                        <h5 class="card-title text-info mb-1">
+                            <i class="fas fa-tablet-alt me-1"></i>อุปกรณ์ทั้งหมด
+                        </h5>
+                        <h2 class="display-5 fw-bold mb-0" id="totalCount">0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Devices List Section -->
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>รายการอุปกรณ์
+                    </h5>
+                    <div class="d-flex align-items-center mt-2 mt-md-0">
+                        <div class="btn-group view-toggle me-2">
+                            <button class="btn btn-sm btn-outline-primary active" id="normalViewBtn">
+                                <i class="fas fa-th-large"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" id="compactViewBtn">
+                                <i class="fas fa-th"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" id="extraCompactViewBtn">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </div>
+                        <div class="input-group" style="max-width: 200px;">
+                            <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="ค้นหาอุปกรณ์...">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" id="searchBtn">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="loading-spinner" id="loadingSpinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">กำลังโหลด...</span>
+                    </div>
+                </div>
+                <div id="devicesList" class="row g-2"></div>
+                <p class="last-checked text-center mt-3">
+                    ข้อมูลล่าสุดเมื่อ: <span id="lastUpdatedTime">-</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-light py-2 mt-4">
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2025 ระบบติดตามสถานะอุปกรณ์ | <a href="#" target="_blank">เอกสาร</a></p>
+        </div>
+    </footer>
+
+    <!-- Firebase -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-database-compat.min.js"></script>
+    
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBbkMXGQFEjrvPSdl6vAQ8-zmAMAdbOFdg",
+            authDomain: "zsinage.firebaseapp.com",
+            databaseURL: "https://zsinage-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "zsinage",
+            storageBucket: "zsinage.firebasestorage.app",
+            messagingSenderId: "811769710688",
+            appId: "1:811769710688:android:a4541d48fa806296791b05"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // DOM Elements
+        const devicesList = document.getElementById('devicesList');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const activeCount = document.getElementById('activeCount');
+        const inactiveCount = document.getElementById('inactiveCount');
+        const totalCount = document.getElementById('totalCount');
+        const lastUpdatedTime = document.getElementById('lastUpdatedTime');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const normalViewBtn = document.getElementById('normalViewBtn');
+        const compactViewBtn = document.getElementById('compactViewBtn');
+        const extraCompactViewBtn = document.getElementById('extraCompactViewBtn');
+
+        // View state
+        let currentView = 'normal'; // normal, compact, extraCompact
+
+        // Check if device is active based on last update time
+        function isDeviceActive(device) {
+            // ตรวจสอบสถานะ isActive จาก Firebase โดยตรง
+            return device.isActive === true;
+        }
+
+        // Format uptime in hours and minutes
+        function formatUptime(minutes) {
+            if (!minutes && minutes !== 0) return "-";
+            
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            
+            if (hours > 0) {
+                return `${hours} ชม. ${mins} น.`;
+            } else {
+                return `${mins} นาที`;
+            }
+        }
+
+        // Create device card HTML based on current view
+        function createDeviceCard(deviceId, deviceData) {
+            const isActive = isDeviceActive(deviceData);
+            const statusClass = isActive ? 'device-active' : 'device-inactive';
+            const statusText = isActive ? 'ออนไลน์' : 'ออฟไลน์';
+            const statusIcon = isActive ? 'fa-check-circle' : 'fa-times-circle';
+            const deviceName = deviceData.deviceName || deviceId;
+            
+            if (currentView === 'extraCompact') {
+                // Extra compact view - horizontal list items
+                return `
+                    <div class="col-12 col-device">
+                        <div class="card mb-1">
+                            <div class="card-body p-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge ${isActive ? 'bg-success' : 'bg-danger'} me-2">
+                                            <i class="fas ${statusIcon}"></i>
+                                        </span>
+                                        <strong>${deviceName}</strong>
+                                        <span class="text-muted ms-2 d-none d-md-inline">${deviceId}</span>
+                                    </div>
+                                    <div class="d-flex align-items-center small">
+                                        <span class="me-3 d-none d-md-inline">${formatUptime(deviceData.uptimeMinutes)}</span>
+                                        <span class="text-muted">${deviceData.lastUpdated ? deviceData.lastUpdated.split(' เวลา')[0] : '-'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (currentView === 'compact') {
+                // Compact view - smaller cards with all info
+                return `
+                    <div class="col-md-4 col-lg-3 device-card">
+                        <div class="card compact-view">
+                            <div class="card-header ${statusClass} d-flex justify-content-between align-items-center">
+                                <span class="text-truncate">${deviceName}</span>
+                                <span class="badge ${isActive ? 'bg-success' : 'bg-danger'} status-badge">
+                                    <i class="fas ${statusIcon}"></i>
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <div class="device-info">
+                                    <span class="device-info-label">อัปเดต:</span>
+                                    <span class="text-truncate">${deviceData.lastUpdated ? deviceData.lastUpdated.split(' เวลา')[1] : '-'}</span>
+                                </div>
+                                <div class="device-info">
+                                    <span class="device-info-label">ทำงาน:</span>
+                                    <span>${formatUptime(deviceData.uptimeMinutes)}</span>
+                                </div>
+                                <div class="device-info">
+                                    <span class="device-info-label">รหัส:</span>
+                                    <span class="text-truncate">${deviceId}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Normal view - standard cards
+                return `
+                    <div class="col-md-6 col-lg-4 device-card">
+                        <div class="card">
+                            <div class="card-header ${statusClass} d-flex justify-content-between align-items-center">
+                                <span>${deviceName}</span>
+                                <span class="badge ${isActive ? 'bg-success' : 'bg-danger'} status-badge">
+                                    <i class="fas ${statusIcon} me-1"></i> ${statusText}
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <div class="device-info">
+                                    <span class="device-info-label">อัปเดตล่าสุด:</span> 
+                                    <span>${deviceData.lastUpdated || '-'}</span>
+                                </div>
+                                <div class="device-info">
+                                    <span class="device-info-label">ระยะเวลาทำงาน:</span> 
+                                    <span>${formatUptime(deviceData.uptimeMinutes)}</span>
+                                </div>
+                                <div class="device-info">
+                                    <span class="device-info-label">รหัสอุปกรณ์:</span> 
+                                    <span>${deviceId}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Update device counts
+        function updateCounts(devices) {
+            let active = 0;
+            let inactive = 0;
+            let total = Object.keys(devices).length;
+            
+            for (const deviceId in devices) {
+                if (isDeviceActive(devices[deviceId])) {
+                    active++;
+                } else {
+                    inactive++;
+                }
+            }
+            
+            activeCount.textContent = active;
+            inactiveCount.textContent = inactive;
+            totalCount.textContent = total;
+        }
+
+        // Filter devices based on search input
+        function filterDevices() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const deviceCards = document.querySelectorAll('.device-card, .col-device');
+            
+            deviceCards.forEach(card => {
+                const cardText = card.textContent.toLowerCase();
+                if (cardText.includes(searchTerm)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Load devices data from Firebase
+        function loadDevicesData() {
+            loadingSpinner.style.display = 'flex';
+            devicesList.innerHTML = '';
+            
+            const devicesRef = database.ref('device_status');
+            
+            devicesRef.once('value')
+                .then(snapshot => {
+                    const devices = snapshot.val() || {};
+                    let devicesHTML = '';
+                    
+                    // Sort devices by active status and then by name
+                    const sortedDevices = Object.entries(devices).sort((a, b) => {
+                        const aActive = isDeviceActive(a[1]);
+                        const bActive = isDeviceActive(b[1]);
+                        
+                        if (aActive === bActive) {
+                            return (a[1].deviceName || a[0]).localeCompare(b[1].deviceName || b[0]);
+                        }
+                        
+                        return aActive ? -1 : 1;
+                    });
+                    
+                    sortedDevices.forEach(([deviceId, deviceData]) => {
+                        devicesHTML += createDeviceCard(deviceId, deviceData);
+                    });
+                    
+                    devicesList.innerHTML = devicesHTML || '<div class="col text-center">ไม่พบข้อมูลอุปกรณ์</div>';
+                    updateCounts(devices);
+                    
+                    // Update last checked time
+                    const now = new Date();
+                    const options = { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    };
+                    lastUpdatedTime.textContent = now.toLocaleString('th-TH', options) + ' น.';
+                })
+                .catch(error => {
+                    console.error("Error fetching data:", error);
+                    devicesList.innerHTML = `
+                        <div class="col text-center text-danger">
+                            <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
+                            <h5>เกิดข้อผิดพลาดในการโหลดข้อมูล</h5>
+                            <p>${error.message}</p>
+                        </div>
+                    `;
+                })
+                .finally(() => {
+                    loadingSpinner.style.display = 'none';
+                });
+        }
+
+        // Toggle view functions
+        function setNormalView() {
+            currentView = 'normal';
+            normalViewBtn.classList.add('active');
+            compactViewBtn.classList.remove('active');
+            extraCompactViewBtn.classList.remove('active');
+            devicesList.classList.remove('compact-view', 'extra-compact-view');
+            loadDevicesData();
+        }
+
+        function setCompactView() {
+            currentView = 'compact';
+            normalViewBtn.classList.remove('active');
+            compactViewBtn.classList.add('active');
+            extraCompactViewBtn.classList.remove('active');
+            devicesList.classList.add('compact-view');
+            devicesList.classList.remove('extra-compact-view');
+            loadDevicesData();
+        }
+
+        function setExtraCompactView() {
+            currentView = 'extraCompact';
+            normalViewBtn.classList.remove('active');
+            compactViewBtn.classList.remove('active');
+            extraCompactViewBtn.classList.add('active');
+            devicesList.classList.remove('compact-view');
+            devicesList.classList.add('extra-compact-view');
+            loadDevicesData();
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', loadDevicesData);
+        refreshBtn.addEventListener('click', loadDevicesData);
+        searchBtn.addEventListener('click', filterDevices);
+        searchInput.addEventListener('keyup', filterDevices);
+        normalViewBtn.addEventListener('click', setNormalView);
+        compactViewBtn.addEventListener('click', setCompactView);
+        extraCompactViewBtn.addEventListener('click', setExtraCompactView);
+
+        // Auto refresh every 5 minutes
+        setInterval(loadDevicesData, 5 * 60 * 1000);
+    </script>
 </body>
 </html>
