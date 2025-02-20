@@ -64,6 +64,23 @@
             font-size: 0.75rem;
             color: #6c757d;
         }
+        .dropdown-menu {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .dropdown-item {
+            padding: 0.5rem 1rem;
+        }
+        .dropdown-item:active {
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        .device-item:hover {
+            background-color: #f8f9fa;
+        }
+        #deviceDetailPanel {
+            transition: all 0.3s ease;
+        }
         @media (max-width: 768px) {
             .device-count {
                 text-align: center;
@@ -119,7 +136,7 @@
             </div>
         </div>
 
-        <!-- Devices List Section -->
+        <!-- Devices Dropdown Section -->
         <div class="card mb-4">
             <div class="card-header bg-white">
                 <div class="d-flex justify-content-between align-items-center">
@@ -140,7 +157,45 @@
                         <span class="visually-hidden">กำลังโหลด...</span>
                     </div>
                 </div>
-                <div id="devicesList" class="row"></div>
+                
+                <!-- Device Dropdown Container -->
+                <div id="deviceDropdownContainer" style="display: none;">
+                    <div class="device-dropdown-container mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="dropdown">
+                                <button class="btn btn-primary dropdown-toggle" type="button" id="deviceDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-tablet-alt me-2"></i>เลือกอุปกรณ์
+                                </button>
+                                <ul class="dropdown-menu" id="deviceDropdownMenu" aria-labelledby="deviceDropdown">
+                                    <!-- dropdown items จะถูกเพิ่มด้วย JavaScript -->
+                                </ul>
+                            </div>
+                            <span class="badge bg-primary" id="selectedDeviceCount">
+                                อุปกรณ์ทั้งหมด: 0
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Device Detail Panel -->
+                    <div class="card" id="deviceDetailPanel" style="display: none;">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0" id="detailDeviceName">รายละเอียดอุปกรณ์</h5>
+                            <span class="badge" id="detailDeviceStatus"></span>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>อัปเดตล่าสุด:</strong> <span id="detailLastUpdated">-</span></p>
+                                    <p><strong>ระยะเวลาทำงาน:</strong> <span id="detailUptime">-</span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>รหัสอุปกรณ์:</strong> <span id="detailDeviceId">-</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <p class="last-checked text-center mt-3">
                     ข้อมูลล่าสุดเมื่อ: <span id="lastUpdatedTime">-</span>
                 </p>
@@ -155,6 +210,9 @@
         </div>
     </footer>
 
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
     <!-- Firebase -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-database-compat.min.js"></script>
@@ -176,7 +234,8 @@
         const database = firebase.database();
 
         // DOM Elements
-        const devicesList = document.getElementById('devicesList');
+        const deviceDropdownMenu = document.getElementById('deviceDropdownMenu');
+        const deviceDropdownContainer = document.getElementById('deviceDropdownContainer');
         const loadingSpinner = document.getElementById('loadingSpinner');
         const activeCount = document.getElementById('activeCount');
         const inactiveCount = document.getElementById('inactiveCount');
@@ -185,14 +244,16 @@
         const refreshBtn = document.getElementById('refreshBtn');
         const searchInput = document.getElementById('searchInput');
         const searchBtn = document.getElementById('searchBtn');
+        const selectedDeviceCount = document.getElementById('selectedDeviceCount');
+        const deviceDetailPanel = document.getElementById('deviceDetailPanel');
 
-        // Check if device is active based on last update time
-        // แก้ไขฟังก์ชัน isDeviceActive
-// แก้ไขฟังก์ชัน isDeviceActive ให้อิงเฉพาะค่า isActive เท่านั้น
-function isDeviceActive(device) {
-    // ตรวจสอบสถานะ isActive จาก Firebase โดยตรง
-    return device.isActive === true;
-}
+        // Global variables
+        let allDevices = {};
+
+        // Check if device is active based on isActive status
+        function isDeviceActive(device) {
+            return device.isActive === true;
+        }
 
         // Format uptime in hours and minutes
         function formatUptime(minutes) {
@@ -208,39 +269,46 @@ function isDeviceActive(device) {
             }
         }
 
-        // Create device card HTML
-        function createDeviceCard(deviceId, deviceData) {
+        // Create dropdown item for each device
+        function createDropdownItem(deviceId, deviceData) {
             const isActive = isDeviceActive(deviceData);
-            const statusClass = isActive ? 'device-active' : 'device-inactive';
+            const li = document.createElement('li');
+            
+            li.innerHTML = `
+                <a class="dropdown-item d-flex justify-content-between align-items-center device-item" 
+                   href="#" 
+                   data-device-id="${deviceId}">
+                    <span>${deviceData.deviceName || deviceId}</span>
+                    <span class="badge ${isActive ? 'bg-success' : 'bg-danger'} ms-2">
+                        <i class="fas ${isActive ? 'fa-check-circle' : 'fa-times-circle'} me-1"></i>
+                        ${isActive ? 'ออนไลน์' : 'ออฟไลน์'}
+                    </span>
+                </a>
+            `;
+            
+            return li;
+        }
+
+        // Show device detail when selected from dropdown
+        function showDeviceDetail(deviceId) {
+            const device = allDevices[deviceId];
+            if (!device) return;
+            
+            const isActive = isDeviceActive(device);
+            const statusClass = isActive ? 'bg-success' : 'bg-danger';
             const statusText = isActive ? 'ออนไลน์' : 'ออฟไลน์';
             const statusIcon = isActive ? 'fa-check-circle' : 'fa-times-circle';
             
-            return `
-                <div class="col-md-6 col-lg-4 device-card">
-                    <div class="card">
-                        <div class="card-header ${statusClass} d-flex justify-content-between align-items-center">
-                            <span>${deviceData.deviceName || deviceId}</span>
-                            <span class="badge ${isActive ? 'bg-success' : 'bg-danger'} status-badge">
-                                <i class="fas ${statusIcon} me-1"></i> ${statusText}
-                            </span>
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-2">
-                                <strong>อัปเดตล่าสุด:</strong> 
-                                <span>${deviceData.lastUpdated || '-'}</span>
-                            </div>
-                            <div class="mb-2">
-                                <strong>ระยะเวลาทำงาน:</strong> 
-                                <span>${formatUptime(deviceData.uptimeMinutes)}</span>
-                            </div>
-                            <div class="mb-2">
-                                <strong>รหัสอุปกรณ์:</strong> 
-                                <span>${deviceId}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
+            // อัปเดตข้อมูลในพาเนลรายละเอียด
+            document.getElementById('detailDeviceName').textContent = device.deviceName || deviceId;
+            document.getElementById('detailDeviceStatus').className = `badge ${statusClass}`;
+            document.getElementById('detailDeviceStatus').innerHTML = `<i class="fas ${statusIcon} me-1"></i> ${statusText}`;
+            document.getElementById('detailLastUpdated').textContent = device.lastUpdated || '-';
+            document.getElementById('detailUptime').textContent = formatUptime(device.uptimeMinutes);
+            document.getElementById('detailDeviceId').textContent = deviceId;
+            
+            // แสดงพาเนลรายละเอียด
+            deviceDetailPanel.style.display = 'block';
         }
 
         // Update device counts
@@ -260,39 +328,49 @@ function isDeviceActive(device) {
             activeCount.textContent = active;
             inactiveCount.textContent = inactive;
             totalCount.textContent = total;
+            selectedDeviceCount.textContent = `อุปกรณ์ทั้งหมด: ${total}`;
         }
 
         // Filter devices based on search input
         function filterDevices() {
-            const searchTerm = searchInput.value.toLowerCase();
-            const deviceCards = document.querySelectorAll('.device-card');
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const dropdownItems = deviceDropdownMenu.querySelectorAll('.device-item');
             
-            deviceCards.forEach(card => {
-                const deviceName = card.querySelector('.card-header').textContent.toLowerCase();
-                const deviceId = card.querySelector('.card-body').textContent.toLowerCase();
+            let visibleCount = 0;
+            
+            dropdownItems.forEach(item => {
+                const deviceName = item.querySelector('span:first-child').textContent.toLowerCase();
+                const deviceId = item.getAttribute('data-device-id').toLowerCase();
                 
                 if (deviceName.includes(searchTerm) || deviceId.includes(searchTerm)) {
-                    card.style.display = 'block';
+                    item.parentElement.style.display = '';
+                    visibleCount++;
                 } else {
-                    card.style.display = 'none';
+                    item.parentElement.style.display = 'none';
                 }
             });
+            
+            // ถ้าไม่พบอุปกรณ์ที่ตรงกับการค้นหา ให้ซ่อน device detail panel
+            if (visibleCount === 0 && deviceDetailPanel.style.display !== 'none') {
+                deviceDetailPanel.style.display = 'none';
+            }
         }
 
         // Load devices data from Firebase
         function loadDevicesData() {
             loadingSpinner.style.display = 'flex';
-            devicesList.innerHTML = '';
+            deviceDropdownContainer.style.display = 'none';
+            deviceDetailPanel.style.display = 'none';
+            deviceDropdownMenu.innerHTML = '';
             
             const devicesRef = database.ref('device_status');
             
             devicesRef.once('value')
                 .then(snapshot => {
-                    const devices = snapshot.val() || {};
-                    let devicesHTML = '';
+                    allDevices = snapshot.val() || {};
                     
                     // Sort devices by active status and then by name
-                    const sortedDevices = Object.entries(devices).sort((a, b) => {
+                    const sortedDevices = Object.entries(allDevices).sort((a, b) => {
                         const aActive = isDeviceActive(a[1]);
                         const bActive = isDeviceActive(b[1]);
                         
@@ -303,12 +381,28 @@ function isDeviceActive(device) {
                         return aActive ? -1 : 1;
                     });
                     
+                    // Add devices to dropdown
                     sortedDevices.forEach(([deviceId, deviceData]) => {
-                        devicesHTML += createDeviceCard(deviceId, deviceData);
+                        const dropdownItem = createDropdownItem(deviceId, deviceData);
+                        deviceDropdownMenu.appendChild(dropdownItem);
                     });
                     
-                    devicesList.innerHTML = devicesHTML || '<div class="col text-center">ไม่พบข้อมูลอุปกรณ์</div>';
-                    updateCounts(devices);
+                    // Add event listeners to dropdown items
+                    const deviceItems = document.querySelectorAll('.device-item');
+                    deviceItems.forEach(item => {
+                        item.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const deviceId = this.getAttribute('data-device-id');
+                            showDeviceDetail(deviceId);
+                        });
+                    });
+                    
+                    updateCounts(allDevices);
+                    
+                    // Show first device details if there are any devices
+                    if (sortedDevices.length > 0) {
+                        showDeviceDetail(sortedDevices[0][0]);
+                    }
                     
                     // Update last checked time
                     const now = new Date();
@@ -321,16 +415,20 @@ function isDeviceActive(device) {
                         second: '2-digit'
                     };
                     lastUpdatedTime.textContent = now.toLocaleString('th-TH', options) + ' น.';
+                    
+                    // Show dropdown container
+                    deviceDropdownContainer.style.display = 'block';
                 })
                 .catch(error => {
                     console.error("Error fetching data:", error);
-                    devicesList.innerHTML = `
-                        <div class="col text-center text-danger">
+                    deviceDropdownContainer.innerHTML = `
+                        <div class="text-center text-danger">
                             <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
                             <h5>เกิดข้อผิดพลาดในการโหลดข้อมูล</h5>
                             <p>${error.message}</p>
                         </div>
                     `;
+                    deviceDropdownContainer.style.display = 'block';
                 })
                 .finally(() => {
                     loadingSpinner.style.display = 'none';
