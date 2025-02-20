@@ -188,7 +188,7 @@
 
         // Check if device is active based on last update time
         function isDeviceActive(device) {
-            if (!device.isActive) return false;
+            if (!device.isActive) return true;
             
             // Consider devices inactive if last update was more than 30 minutes ago
             const lastUpdated = new Date(device.lastUpdated);
