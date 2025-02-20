@@ -267,10 +267,55 @@
         // View state
         let currentView = 'normal'; // normal, compact, extraCompact
 
+        // Parse Thai date format to Date object
+        function parseThaiDate(thaiDateStr) {
+            if (!thaiDateStr) return null;
+            
+            try {
+                // ตัวอย่าง: "วันที่ 20 กุมภาพันธ์ 2568 เวลา 15:02 น."
+                const thaiMonths = [
+                    'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+                    'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+                ];
+                
+                const parts = thaiDateStr.replace('วันที่ ', '').split(' เวลา ');
+                const dateParts = parts[0].trim().split(' ');
+                const timeParts = parts[1].replace(' น.', '').split(':');
+                
+                const day = parseInt(dateParts[0], 10);
+                const month = thaiMonths.indexOf(dateParts[1]);
+                const thaiYear = parseInt(dateParts[2], 10);
+                const year = thaiYear - 543; // แปลงปี พ.ศ. เป็น ค.ศ.
+                
+                const hour = parseInt(timeParts[0], 10);
+                const minute = parseInt(timeParts[1], 10);
+                
+                if (month === -1 || isNaN(day) || isNaN(year) || isNaN(hour) || isNaN(minute)) {
+                    return null;
+                }
+                
+                return new Date(year, month, day, hour, minute);
+            } catch (e) {
+                console.error("Error parsing Thai date:", e, thaiDateStr);
+                return null;
+            }
+        }
+
         // Check if device is active based on last update time
         function isDeviceActive(device) {
-            // ตรวจสอบสถานะ isActive จาก Firebase โดยตรง
-            return device.isActive === true;
+            // ถ้าไม่มีการอัปเดต ถือว่าไม่ออนไลน์
+            if (!device.lastUpdated) return false;
+            
+            // แปลงวันที่ภาษาไทยเป็น Date object
+            const lastUpdateDate = parseThaiDate(device.lastUpdated);
+            if (!lastUpdateDate) return false;
+            
+            // คำนวณเวลาที่ผ่านไปตั้งแต่การอัปเดตล่าสุดเป็นนาที
+            const now = new Date();
+            const minutesSinceLastUpdate = Math.floor((now - lastUpdateDate) / (60 * 1000));
+            
+            // ถ้าไม่มีการอัปเดตเกิน 1 ชั่วโมง (60 นาที) ถือว่าไม่ออนไลน์
+            return minutesSinceLastUpdate <= 60;
         }
 
         // Format uptime in hours and minutes
@@ -287,6 +332,32 @@
             }
         }
 
+        // Get time since last update
+        function getTimeSinceLastUpdate(lastUpdated) {
+            if (!lastUpdated) return "ไม่มีข้อมูล";
+            
+            const lastUpdateDate = parseThaiDate(lastUpdated);
+            if (!lastUpdateDate) return "รูปแบบวันที่ไม่ถูกต้อง";
+            
+            const now = new Date();
+            const diffMs = now - lastUpdateDate;
+            const diffMins = Math.floor(diffMs / (60 * 1000));
+            
+            if (diffMins < 1) {
+                return "น้อยกว่า 1 นาที";
+            } else if (diffMins < 60) {
+                return `${diffMins} นาทีที่แล้ว`;
+            } else {
+                const diffHours = Math.floor(diffMins / 60);
+                if (diffHours < 24) {
+                    return `${diffHours} ชั่วโมงที่แล้ว`;
+                } else {
+                    const diffDays = Math.floor(diffHours / 24);
+                    return `${diffDays} วันที่แล้ว`;
+                }
+            }
+        }
+
         // Create device card HTML based on current view
         function createDeviceCard(deviceId, deviceData) {
             const isActive = isDeviceActive(deviceData);
@@ -294,6 +365,9 @@
             const statusText = isActive ? 'ออนไลน์' : 'ออฟไลน์';
             const statusIcon = isActive ? 'fa-check-circle' : 'fa-times-circle';
             const deviceName = deviceData.deviceName || deviceId;
+            const lastUpdateStatus = deviceData.lastUpdated ? 
+                `${deviceData.lastUpdated}<br><small>(${getTimeSinceLastUpdate(deviceData.lastUpdated)})</small>` : 
+                '-';
             
             if (currentView === 'extraCompact') {
                 // Extra compact view - horizontal list items
@@ -337,7 +411,7 @@
                             <div class="card-body">
                                 <div class="device-info">
                                     <span class="device-info-label">อัปเดต:</span>
-                                    <span class="text-truncate">${deviceData.lastUpdated ? deviceData.lastUpdated.split(' เวลา')[1] : '-'}</span>
+                                    <span class="text-truncate">${getTimeSinceLastUpdate(deviceData.lastUpdated)}</span>
                                 </div>
                                 <div class="device-info">
                                     <span class="device-info-label">ทำงาน:</span>
@@ -372,7 +446,7 @@
                             <div class="card-body">
                                 <div class="device-info">
                                     <span class="device-info-label">อัปเดตล่าสุด:</span> 
-                                    <span>${deviceData.lastUpdated || '-'}</span>
+                                    <span>${lastUpdateStatus}</span>
                                 </div>
                                 <div class="device-info">
                                     <span class="device-info-label">ระยะเวลาทำงาน:</span> 
@@ -430,24 +504,23 @@
             });
         }
 
-      
-function updateDeviceName(deviceId, newName) {
-    const deviceRef = database.ref('device_status').child(deviceId);
-    
-    return deviceRef.update({
-        deviceName: newName,
-        nameUpdatedByUser: true,              // สำคัญ: ต้องมี flag นี้ 
-        nameUpdatedAt: new Date().toISOString() // บอกเวลาที่มีการแก้ไข
-    }).then(() => {
-        // รีเฟรชข้อมูลหลังการอัปเดต
-        loadDevicesData();
-        return true;
-    }).catch(error => {
-        console.error("Error updating device name:", error);
-        alert(`เกิดข้อผิดพลาด: ${error.message}`);
-        return false;
-    });
-}
+        function updateDeviceName(deviceId, newName) {
+            const deviceRef = database.ref('device_status').child(deviceId);
+            
+            return deviceRef.update({
+                deviceName: newName,
+                nameUpdatedByUser: true,              // สำคัญ: ต้องมี flag นี้ 
+                nameUpdatedAt: new Date().toISOString() // บอกเวลาที่มีการแก้ไข
+            }).then(() => {
+                // รีเฟรชข้อมูลหลังการอัปเดต
+                loadDevicesData();
+                return true;
+            }).catch(error => {
+                console.error("Error updating device name:", error);
+                alert(`เกิดข้อผิดพลาด: ${error.message}`);
+                return false;
+            });
+        }
 
         // Load devices data from Firebase
         function loadDevicesData() {
