@@ -102,19 +102,21 @@ function getTimeSinceLastUpdate(lastUpdated) {
     const diffMs = now - lastUpdateDate;
     const diffMins = Math.floor(diffMs / (60 * 1000));
     
+    let timeText;
     if (diffMins < 1) {
-        return "น้อยกว่า 1 นาที";
+        timeText = "น้อยกว่า 1 นาที";
     } else if (diffMins < 60) {
-        return `${diffMins} นาทีที่แล้ว`;
+        timeText = `${diffMins} นาทีที่แล้ว`;
     } else {
         const diffHours = Math.floor(diffMins / 60);
         if (diffHours < 24) {
-            return `${diffHours} ชั่วโมงที่แล้ว`;
+            timeText = `<span class="time-overdue">${diffHours} ชั่วโมงที่แล้ว</span>`;
         } else {
             const diffDays = Math.floor(diffHours / 24);
-            return `${diffDays} วันที่แล้ว`;
+            timeText = `<span class="time-overdue">${diffDays} วันที่แล้ว</span>`;
         }
     }
+    return timeText;
 }
 
 // Create device card HTML based on current view
