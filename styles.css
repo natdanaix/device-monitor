@@ -97,6 +97,11 @@ body {
     color: #6c757d;
 }
 
+.time-overdue {
+    color: #dc3545;
+    font-weight: 500;
+}
+
 .compact-view .card-header {
     padding: 0.4rem 0.6rem;
     font-size: 0.8rem;
