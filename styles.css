@@ -10,6 +10,7 @@ body {
     transition: transform 0.2s;
 }
 
+/* สไตล์สำหรับการ์ดสรุปข้อมูลส่วนบน */
 .summary-card-online {
     background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
     color: white;
@@ -26,7 +27,7 @@ body {
 }
 
 .card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
 }
 
@@ -59,18 +60,29 @@ body {
     margin-bottom: 15px;
 }
 
+.timestamp {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-align: right;
+    margin-top: 10px;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
 .status-badge {
     font-size: 0.7rem;
     padding: 0.25rem 0.4rem;
 }
 
 .card-body {
-    padding: 0.4rem;
+    padding: 0.75rem;
+    font-size: 0.85rem;
 }
 
 .device-info {
-    font-size: 0.75rem;
-    margin-bottom: 0;
+    margin-bottom: 0.4rem;
 }
 
 .device-info-label {
@@ -90,27 +102,32 @@ body {
     font-weight: 500;
 }
 
-.extra-compact-view .card {
-    margin-bottom: 4px;
+.compact-view .card-header {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
 }
 
-.extra-compact-view .btn {
-    padding: 0.15rem 0.4rem;
+.compact-view .card-body {
+    padding: 0.6rem;
+}
+
+.compact-view .device-info {
+    margin-bottom: 0.25rem;
+    display: flex;
+    flex-wrap: nowrap;
     font-size: 0.75rem;
 }
 
-.device-name {
-    max-width: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+.view-toggle {
+    margin-bottom: 1rem;
+}
+
+.extra-compact-view .col-device {
+    margin-bottom: 8px;
 }
 
 @media (max-width: 768px) {
     .device-count {
         text-align: center;
-    }
-    .device-info-label {
-        width: auto;
     }
 }
