@@ -23,19 +23,20 @@ const lastUpdatedTime = document.getElementById('lastUpdatedTime');
 const refreshBtn = document.getElementById('refreshBtn');
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
-const normalViewBtn = document.getElementById('normalViewBtn');
-const compactViewBtn = document.getElementById('compactViewBtn');
-const extraCompactViewBtn = document.getElementById('extraCompactViewBtn');
+const editDeviceNameModal = new bootstrap.Modal(document.getElementById('editDeviceNameModal'));
+const editDeviceNameForm = document.getElementById('editDeviceNameForm');
+const editDeviceIdInput = document.getElementById('editDeviceId');
+const editDeviceNameInput = document.getElementById('editDeviceName');
+const saveDeviceNameBtn = document.getElementById('saveDeviceNameBtn');
 
-// View state
-let currentView = 'normal'; // normal, compact, extraCompact
+// Current view state
+let currentView = 'extraCompact';
 
-// Parse Thai date format to Date object
+// Parse Thai date format
 function parseThaiDate(thaiDateStr) {
     if (!thaiDateStr) return null;
     
     try {
-        // ตัวอย่าง: "วันที่ 20 กุมภาพันธ์ 2568 เวลา 15:02 น."
         const thaiMonths = [
             'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
             'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
@@ -48,23 +49,19 @@ function parseThaiDate(thaiDateStr) {
         const day = parseInt(dateParts[0], 10);
         const month = thaiMonths.indexOf(dateParts[1]);
         const thaiYear = parseInt(dateParts[2], 10);
-        const year = thaiYear - 543; // แปลงปี พ.ศ. เป็น ค.ศ.
+        const year = thaiYear - 543;
         
         const hour = parseInt(timeParts[0], 10);
         const minute = parseInt(timeParts[1], 10);
         
-        if (month === -1 || isNaN(day) || isNaN(year) || isNaN(hour) || isNaN(minute)) {
-            return null;
-        }
-        
         return new Date(year, month, day, hour, minute);
     } catch (e) {
-        console.error("Error parsing Thai date:", e, thaiDateStr);
+        console.error("Error parsing Thai date:", e);
         return null;
     }
 }
 
-// Check if device is active based on last update time
+// Check if device is active
 function isDeviceActive(device) {
     if (!device.lastUpdated) return false;
     
@@ -77,7 +74,7 @@ function isDeviceActive(device) {
     return minutesSinceLastUpdate <= 60;
 }
 
-// Format uptime in hours and minutes
+// Format uptime
 function formatUptime(minutes) {
     if (!minutes && minutes !== 0) return "-";
     
@@ -102,130 +99,54 @@ function getTimeSinceLastUpdate(lastUpdated) {
     const diffMs = now - lastUpdateDate;
     const diffMins = Math.floor(diffMs / (60 * 1000));
     
-    let timeText;
     if (diffMins < 1) {
-        timeText = "น้อยกว่า 1 นาที";
+        return "น้อยกว่า 1 นาที";
     } else if (diffMins < 60) {
-        timeText = `${diffMins} นาทีที่แล้ว`;
+        return `${diffMins} นาทีที่แล้ว`;
     } else {
         const diffHours = Math.floor(diffMins / 60);
         if (diffHours < 24) {
-            timeText = `<span class="time-overdue">${diffHours} ชั่วโมงที่แล้ว</span>`;
+            return `<span class="time-overdue">${diffHours} ชั่วโมงที่แล้ว</span>`;
         } else {
             const diffDays = Math.floor(diffHours / 24);
-            timeText = `<span class="time-overdue">${diffDays} วันที่แล้ว</span>`;
+            return `<span class="time-overdue">${diffDays} วันที่แล้ว</span>`;
         }
     }
-    return timeText;
 }
 
-// Create device card HTML based on current view
+// Create device card HTML
 function createDeviceCard(deviceId, deviceData) {
     const isActive = isDeviceActive(deviceData);
-    const statusClass = isActive ? 'device-active' : 'device-inactive';
-    const statusText = isActive ? 'ออนไลน์' : 'ออฟไลน์';
+    const statusClass = isActive ? 'bg-success' : 'bg-danger';
     const statusIcon = isActive ? 'fa-check-circle' : 'fa-times-circle';
     const deviceName = deviceData.deviceName || deviceId;
-    const lastUpdateStatus = deviceData.lastUpdated ? 
-        `${deviceData.lastUpdated}<br><small>(${getTimeSinceLastUpdate(deviceData.lastUpdated)})</small>` : 
-        '-';
-    
-    if (currentView === 'extraCompact') {
-        return `
-            <div class="col-12 col-device">
-                <div class="card mb-1">
-                    <div class="card-body p-2">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center">
-                                <span class="badge ${isActive ? 'bg-success' : 'bg-danger'} me-2">
-                                    <i class="fas ${statusIcon}"></i>
-                                </span>
-                                <strong>${deviceName}</strong>
-                                <span class="text-muted ms-2 d-none d-md-inline">${deviceId}</span>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <span class="me-3 d-none d-md-inline">${formatUptime(deviceData.uptimeMinutes)}</span>
-                                <span class="text-muted me-2">${deviceData.lastUpdated ? deviceData.lastUpdated.split(' เวลา')[0] : '-'}</span>
-                                <button class="btn btn-sm btn-outline-primary edit-name-btn" 
-                                    data-device-id="${deviceId}" 
-                                    data-device-name="${deviceName}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            </div>
+
+    return `
+        <div class="col-12 col-device">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center flex-grow-1">
+                            <span class="badge ${statusClass} me-1">
+                                <i class="fas ${statusIcon}"></i>
+                            </span>
+                            <strong class="text-truncate me-1">${deviceName}</strong>
+                            <small class="text-muted text-truncate d-none d-sm-inline">(${deviceId})</small>
                         </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    } else if (currentView === 'compact') {
-        return `
-            <div class="col-md-4 col-lg-3 device-card">
-                <div class="card compact-view">
-                    <div class="card-header ${statusClass} d-flex justify-content-between align-items-center">
-                        <span class="text-truncate">${deviceName}</span>
-                        <span class="badge ${isActive ? 'bg-success' : 'bg-danger'} status-badge">
-                            <i class="fas ${statusIcon}"></i>
-                        </span>
-                    </div>
-                    <div class="card-body">
-                        <div class="device-info">
-                            <span class="device-info-label">อัปเดต:</span>
-                            <span class="text-truncate">${getTimeSinceLastUpdate(deviceData.lastUpdated)}</span>
-                        </div>
-                        <div class="device-info">
-                            <span class="device-info-label">ทำงาน:</span>
-                            <span>${formatUptime(deviceData.uptimeMinutes)}</span>
-                        </div>
-                        <div class="device-info">
-                            <span class="device-info-label">รหัส:</span>
-                            <span class="text-truncate">${deviceId}</span>
-                        </div>
-                        <div class="d-flex justify-content-end mt-1">
-                            <button class="btn btn-sm btn-outline-primary edit-name-btn" 
-                                    data-device-id="${deviceId}" 
-                                    data-device-name="${deviceName}">
+                        <div class="d-flex align-items-center ms-2">
+                            <small class="text-muted me-2 d-none d-sm-inline">${formatUptime(deviceData.uptimeMinutes)}</small>
+                            <small class="text-muted me-1">${deviceData.lastUpdated ? deviceData.lastUpdated.split(' เวลา')[0] : '-'}</small>
+                            <button class="btn btn-sm btn-outline-primary edit-name-btn p-1" 
+                                data-device-id="${deviceId}" 
+                                data-device-name="${deviceName}">
                                 <i class="fas fa-edit"></i>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
-        `;
-    } else {
-        return `
-            <div class="col-md-6 col-lg-4 device-card">
-                <div class="card">
-                    <div class="card-header ${statusClass} d-flex justify-content-between align-items-center">
-                        <span>${deviceName}</span>
-                        <span class="badge ${isActive ? 'bg-success' : 'bg-danger'} status-badge">
-                            <i class="fas ${statusIcon} me-1"></i> ${statusText}
-                        </span>
-                    </div>
-                    <div class="card-body">
-                        <div class="device-info">
-                            <span class="device-info-label">อัปเดตล่าสุด:</span> 
-                            <span>${lastUpdateStatus}</span>
-                        </div>
-                        <div class="device-info">
-                            <span class="device-info-label">ระยะเวลาทำงาน:</span> 
-                            <span>${formatUptime(deviceData.uptimeMinutes)}</span>
-                        </div>
-                        <div class="device-info">
-                            <span class="device-info-label">รหัสอุปกรณ์:</span> 
-                            <span>${deviceId}</span>
-                        </div>
-                        <div class="device-info d-flex justify-content-between align-items-center mt-2">
-                            <button class="btn btn-sm btn-outline-primary edit-name-btn" 
-                                    data-device-id="${deviceId}" 
-                                    data-device-name="${deviceName}">
-                                <i class="fas fa-edit me-1"></i> แก้ไขชื่อ
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
+        </div>
+    `;
 }
 
 // Update device counts
@@ -337,41 +258,13 @@ function loadDevicesData() {
 }
 
 // View toggle functions
-function setNormalView() {
-    currentView = 'normal';
-    normalViewBtn.classList.add('active');
-    compactViewBtn.classList.remove('active');
-    extraCompactViewBtn.classList.remove('active');
-    devicesList.classList.remove('compact-view', 'extra-compact-view');
+function setViewMode(mode) {
+    currentView = mode;
+    document.querySelectorAll('.view-toggle .btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`${mode}ViewBtn`).classList.add('active');
+    devicesList.className = `row g-1 ${mode === 'extraCompact' ? 'extra-compact-view' : ''}`;
     loadDevicesData();
 }
-
-function setCompactView() {
-    currentView = 'compact';
-    normalViewBtn.classList.remove('active');
-    compactViewBtn.classList.add('active');
-    extraCompactViewBtn.classList.remove('active');
-    devicesList.classList.add('compact-view');
-    devicesList.classList.remove('extra-compact-view');
-    loadDevicesData();
-}
-
-function setExtraCompactView() {
-    currentView = 'extraCompact';
-    normalViewBtn.classList.remove('active');
-    compactViewBtn.classList.remove('active');
-    extraCompactViewBtn.classList.add('active');
-    devicesList.classList.remove('compact-view');
-    devicesList.classList.add('extra-compact-view');
-    loadDevicesData();
-}
-
-// Setup edit name modal
-const editDeviceNameModal = new bootstrap.Modal(document.getElementById('editDeviceNameModal'));
-const editDeviceNameForm = document.getElementById('editDeviceNameForm');
-const editDeviceIdInput = document.getElementById('editDeviceId');
-const editDeviceNameInput = document.getElementById('editDeviceName');
-const saveDeviceNameBtn = document.getElementById('saveDeviceNameBtn');
 
 // Event delegation for edit buttons
 devicesList.addEventListener('click', event => {
@@ -413,7 +306,7 @@ saveDeviceNameBtn.addEventListener('click', () => {
     }
 });
 
-// Handle form submission (for Enter key)
+// Handle form submission
 editDeviceNameForm.addEventListener('submit', event => {
     event.preventDefault();
     saveDeviceNameBtn.click();
@@ -424,9 +317,9 @@ document.addEventListener('DOMContentLoaded', loadDevicesData);
 refreshBtn.addEventListener('click', loadDevicesData);
 searchBtn.addEventListener('click', filterDevices);
 searchInput.addEventListener('keyup', filterDevices);
-normalViewBtn.addEventListener('click', setNormalView);
-compactViewBtn.addEventListener('click', setCompactView);
-extraCompactViewBtn.addEventListener('click', setExtraCompactView);
+document.getElementById('normalViewBtn').addEventListener('click', () => setViewMode('normal'));
+document.getElementById('compactViewBtn').addEventListener('click', () => setViewMode('compact'));
+document.getElementById('extraCompactViewBtn').addEventListener('click', () => setViewMode('extraCompact'));
 
 // Auto refresh every 5 minutes
 setInterval(loadDevicesData, 5 * 60 * 1000);
