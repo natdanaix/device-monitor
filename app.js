@@ -30,36 +30,24 @@ const extraCompactViewBtn = document.getElementById('extraCompactViewBtn');
 // View state
 let currentView = 'normal'; // normal, compact, extraCompact
 
-// Parse Thai date format to Date object
-function parseThaiDate(thaiDateStr) {
-    if (!thaiDateStr) return null;
+// Format ISO date to Thai format
+function formatThaiDateTime(isoString) {
+    if (!isoString) return null;
     
     try {
-        // ตัวอย่าง: "วันที่ 20 กุมภาพันธ์ 2568 เวลา 15:02 น."
+        const date = new Date(isoString);
         const thaiMonths = [
             'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
             'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
         ];
         
-        const parts = thaiDateStr.replace('วันที่ ', '').split(' เวลา ');
-        const dateParts = parts[0].trim().split(' ');
-        const timeParts = parts[1].replace(' น.', '').split(':');
+        const thaiYear = date.getFullYear() + 543;
+        const formattedDate = `วันที่ ${date.getDate()} ${thaiMonths[date.getMonth()]} ${thaiYear}`;
+        const formattedTime = `เวลา ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')} น.`;
         
-        const day = parseInt(dateParts[0], 10);
-        const month = thaiMonths.indexOf(dateParts[1]);
-        const thaiYear = parseInt(dateParts[2], 10);
-        const year = thaiYear - 543; // แปลงปี พ.ศ. เป็น ค.ศ.
-        
-        const hour = parseInt(timeParts[0], 10);
-        const minute = parseInt(timeParts[1], 10);
-        
-        if (month === -1 || isNaN(day) || isNaN(year) || isNaN(hour) || isNaN(minute)) {
-            return null;
-        }
-        
-        return new Date(year, month, day, hour, minute);
+        return `${formattedDate} ${formattedTime}`;
     } catch (e) {
-        console.error("Error parsing Thai date:", e, thaiDateStr);
+        console.error("Error formatting Thai date:", e, isoString);
         return null;
     }
 }
@@ -68,13 +56,16 @@ function parseThaiDate(thaiDateStr) {
 function isDeviceActive(device) {
     if (!device.lastUpdated) return false;
     
-    const lastUpdateDate = parseThaiDate(device.lastUpdated);
-    if (!lastUpdateDate) return false;
-    
-    const now = new Date();
-    const minutesSinceLastUpdate = Math.floor((now - lastUpdateDate) / (60 * 1000));
-    
-    return minutesSinceLastUpdate <= 60;
+    try {
+        const lastUpdateDate = new Date(device.lastUpdated);
+        const now = new Date();
+        const minutesSinceLastUpdate = Math.floor((now - lastUpdateDate) / (60 * 1000));
+        
+        return minutesSinceLastUpdate <= 60;
+    } catch (e) {
+        console.error("Error checking device active status:", e);
+        return false;
+    }
 }
 
 // Format uptime in hours and minutes
@@ -92,31 +83,34 @@ function formatUptime(minutes) {
 }
 
 // Get time since last update
-function getTimeSinceLastUpdate(lastUpdated) {
-    if (!lastUpdated) return "ไม่มีข้อมูล";
+function getTimeSinceLastUpdate(isoString) {
+    if (!isoString) return "ไม่มีข้อมูล";
     
-    const lastUpdateDate = parseThaiDate(lastUpdated);
-    if (!lastUpdateDate) return "รูปแบบวันที่ไม่ถูกต้อง";
-    
-    const now = new Date();
-    const diffMs = now - lastUpdateDate;
-    const diffMins = Math.floor(diffMs / (60 * 1000));
-    
-    let timeText;
-    if (diffMins < 1) {
-        timeText = "น้อยกว่า 1 นาที";
-    } else if (diffMins < 60) {
-        timeText = `${diffMins} นาทีที่แล้ว`;
-    } else {
-        const diffHours = Math.floor(diffMins / 60);
-        if (diffHours < 24) {
-            timeText = `<span class="time-overdue">${diffHours} ชั่วโมงที่แล้ว</span>`;
+    try {
+        const lastUpdateDate = new Date(isoString);
+        const now = new Date();
+        const diffMs = now - lastUpdateDate;
+        const diffMins = Math.floor(diffMs / (60 * 1000));
+        
+        let timeText;
+        if (diffMins < 1) {
+            timeText = "น้อยกว่า 1 นาที";
+        } else if (diffMins < 60) {
+            timeText = `${diffMins} นาทีที่แล้ว`;
         } else {
-            const diffDays = Math.floor(diffHours / 24);
-            timeText = `<span class="time-overdue">${diffDays} วันที่แล้ว</span>`;
+            const diffHours = Math.floor(diffMins / 60);
+            if (diffHours < 24) {
+                timeText = `<span class="time-overdue">${diffHours} ชั่วโมงที่แล้ว</span>`;
+            } else {
+                const diffDays = Math.floor(diffHours / 24);
+                timeText = `<span class="time-overdue">${diffDays} วันที่แล้ว</span>`;
+            }
         }
+        return timeText;
+    } catch (e) {
+        console.error("Error calculating time since last update:", e);
+        return "รูปแบบวันที่ไม่ถูกต้อง";
     }
-    return timeText;
 }
 
 // Create device card HTML based on current view
@@ -126,10 +120,13 @@ function createDeviceCard(deviceId, deviceData) {
     const statusText = isActive ? 'ออนไลน์' : 'ออฟไลน์';
     const statusIcon = isActive ? 'fa-check-circle' : 'fa-times-circle';
     const deviceName = deviceData.deviceName || deviceId;
-    const lastUpdateStatus = deviceData.lastUpdated ? 
-        `${deviceData.lastUpdated}<br><small>(${getTimeSinceLastUpdate(deviceData.lastUpdated)})</small>` : 
-        '-';
     
+    // Format the last update time in Thai format
+    const thaiDateTime = formatThaiDateTime(deviceData.lastUpdated);
+    const lastUpdateStatus = thaiDateTime ? 
+        `${thaiDateTime}<br><small>(${getTimeSinceLastUpdate(deviceData.lastUpdated)})</small>` : 
+        '-';
+
     if (currentView === 'extraCompact') {
         return `
             <div class="col-12 col-device">
@@ -145,7 +142,7 @@ function createDeviceCard(deviceId, deviceData) {
                             </div>
                             <div class="d-flex align-items-center">
                                 <span class="me-3 d-none d-md-inline">${formatUptime(deviceData.uptimeMinutes)}</span>
-                                <span class="text-muted me-2">${deviceData.lastUpdated ? deviceData.lastUpdated.split(' เวลา')[0] : '-'}</span>
+                                <span class="text-muted me-2">${thaiDateTime ? thaiDateTime.split(' เวลา')[0] : '-'}</span>
                                 <button class="btn btn-sm btn-outline-primary edit-name-btn" 
                                     data-device-id="${deviceId}" 
                                     data-device-name="${deviceName}">
@@ -311,15 +308,7 @@ function loadDevicesData() {
             updateCounts(devices);
             
             const now = new Date();
-            const options = { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            };
-            lastUpdatedTime.textContent = now.toLocaleString('th-TH', options) + ' น.';
+            lastUpdatedTime.textContent = formatThaiDateTime(now.toISOString());
         })
         .catch(error => {
             console.error("Error fetching data:", error);
