@@ -12,7 +12,6 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
-const auth = firebase.auth();
 
 // DOM Elements
 const devicesList = document.getElementById('devicesList');
@@ -27,74 +26,9 @@ const searchBtn = document.getElementById('searchBtn');
 const normalViewBtn = document.getElementById('normalViewBtn');
 const compactViewBtn = document.getElementById('compactViewBtn');
 const extraCompactViewBtn = document.getElementById('extraCompactViewBtn');
-const loginPage = document.getElementById('loginPage');
-const mainApp = document.getElementById('mainApp');
-const loginForm = document.getElementById('loginForm');
-const userDisplayName = document.getElementById('userDisplayName');
-const logoutBtn = document.getElementById('logoutBtn');
-const loginError = document.getElementById('loginError');
 
 // View state
 let currentView = 'normal'; // normal, compact, extraCompact
-
-// Authentication state observer
-auth.onAuthStateChanged(user => {
-    if (user) {
-        // ผู้ใช้ลงชื่อเข้าใช้แล้ว
-        console.log('User is signed in', user);
-        showApp(user);
-    } else {
-        // ไม่มีผู้ใช้ลงชื่อเข้าใช้
-        console.log('No user is signed in');
-        showLogin();
-    }
-});
-
-// แสดงหน้าแอพหลักเมื่อล็อกอินแล้ว
-function showApp(user) {
-    loginPage.classList.add('d-none');
-    mainApp.classList.remove('d-none');
-    
-    // แสดงชื่อผู้ใช้
-    userDisplayName.textContent = user.email || 'ผู้ใช้';
-    
-    // โหลดข้อมูลอุปกรณ์
-    loadDevicesData();
-}
-
-// แสดงหน้าล็อกอิน
-function showLogin() {
-    mainApp.classList.add('d-none');
-    loginPage.classList.remove('d-none');
-    devicesList.innerHTML = ''; // ล้างข้อมูลอุปกรณ์
-}
-
-// ลงชื่อเข้าใช้
-function login(email, password) {
-    auth.signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-            // ล็อกอินสำเร็จ
-            loginError.classList.add('d-none');
-        })
-        .catch((error) => {
-            // แสดงข้อผิดพลาด
-            console.error('Login error:', error);
-            loginError.classList.remove('d-none');
-            loginError.textContent = `เกิดข้อผิดพลาด: ${error.message}`;
-        });
-}
-
-// ออกจากระบบ
-function logout() {
-    auth.signOut()
-        .then(() => {
-            // ออกจากระบบสำเร็จ
-            console.log('User signed out');
-        })
-        .catch((error) => {
-            console.error('Sign out error:', error);
-        });
-}
 
 // Format ISO date to Thai format
 function formatThaiDateTime(isoString) {
@@ -327,19 +261,12 @@ function filterDevices() {
 
 // Update device name in Firebase
 function updateDeviceName(deviceId, newName) {
-    // ตรวจสอบสิทธิ์ผู้ใช้ก่อนอัปเดต
-    if (!auth.currentUser) {
-        alert('คุณไม่ได้ล็อกอิน กรุณาล็อกอินก่อนแก้ไขชื่ออุปกรณ์');
-        return Promise.reject(new Error('ไม่ได้ล็อกอิน'));
-    }
-    
     const deviceRef = database.ref('device_status').child(deviceId);
     
     return deviceRef.update({
         deviceName: newName,
         nameUpdatedByUser: true,
-        nameUpdatedAt: new Date().toISOString(),
-        updatedBy: auth.currentUser.email // เพิ่มข้อมูลว่าใครเป็นคนอัปเดต
+        nameUpdatedAt: new Date().toISOString()
     }).then(() => {
         loadDevicesData();
         return true;
@@ -352,12 +279,6 @@ function updateDeviceName(deviceId, newName) {
 
 // Load devices data from Firebase
 function loadDevicesData() {
-    // ตรวจสอบสิทธิ์ผู้ใช้ก่อนโหลดข้อมูล
-    if (!auth.currentUser) {
-        console.error('ไม่ได้ล็อกอิน');
-        return;
-    }
-    
     loadingSpinner.style.display = 'flex';
     devicesList.innerHTML = '';
     
@@ -488,18 +409,7 @@ editDeviceNameForm.addEventListener('submit', event => {
 });
 
 // Event Listeners
-loginForm.addEventListener('submit', event => {
-    event.preventDefault();
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    login(email, password);
-});
-
-logoutBtn.addEventListener('click', event => {
-    event.preventDefault();
-    logout();
-});
-
+document.addEventListener('DOMContentLoaded', loadDevicesData);
 refreshBtn.addEventListener('click', loadDevicesData);
 searchBtn.addEventListener('click', filterDevices);
 searchInput.addEventListener('keyup', filterDevices);
@@ -507,15 +417,5 @@ normalViewBtn.addEventListener('click', setNormalView);
 compactViewBtn.addEventListener('click', setCompactView);
 extraCompactViewBtn.addEventListener('click', setExtraCompactView);
 
-// Auto refresh every 5 minutes when signed in
-let autoRefreshInterval;
-
-auth.onAuthStateChanged(user => {
-    if (user) {
-        // เริ่ม auto refresh เมื่อล็อกอินแล้ว
-        autoRefreshInterval = setInterval(loadDevicesData, 5 * 60 * 1000);
-    } else {
-        // หยุด auto refresh เมื่อออกจากระบบ
-        clearInterval(autoRefreshInterval);
-    }
-});
+// Auto refresh every 5 minutes
+setInterval(loadDevicesData, 5 * 60 * 1000);
