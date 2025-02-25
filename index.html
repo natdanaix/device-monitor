@@ -12,101 +12,148 @@
     <link href="styles.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-3">
-        <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-tv me-2"></i>ระบบติดตามสถานะอุปกรณ์
-            </a>
-            <button class="btn btn-light btn-sm" id="refreshBtn">
-                <i class="fas fa-sync-alt me-1"></i> รีเฟรช
-            </button>
-        </div>
-    </nav>
-
-    <div class="container">
-        <!-- Summary Section -->
-        <div class="row mb-3">
-            <div class="col-md-4 mb-2">
-                <div class="card summary-card-online h-100">
-                    <div class="card-body py-2">
-                        <h5 class="card-title mb-1">
-                            <i class="fas fa-check-circle me-1"></i>อุปกรณ์ออนไลน์
-                        </h5>
-                        <h2 class="display-5 fw-bold mb-0" id="activeCount">0</h2>
+    <!-- หน้าล็อกอิน (ซ่อนไว้ตอนเริ่มต้น) -->
+    <div id="loginPage" class="container mt-5 d-none">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h4><i class="fas fa-tv me-2"></i>ระบบติดตามสถานะอุปกรณ์</h4>
                     </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-2">
-                <div class="card summary-card-offline h-100">
-                    <div class="card-body py-2">
-                        <h5 class="card-title mb-1">
-                            <i class="fas fa-times-circle me-1"></i>อุปกรณ์ออฟไลน์
-                        </h5>
-                        <h2 class="display-5 fw-bold mb-0" id="inactiveCount">0</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-2">
-                <div class="card summary-card-total h-100">
-                    <div class="card-body py-2">
-                        <h5 class="card-title mb-1">
-                            <i class="fas fa-tablet-alt me-1"></i>อุปกรณ์ทั้งหมด
-                        </h5>
-                        <h2 class="display-5 fw-bold mb-0" id="totalCount">0</h2>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Devices List Section -->
-        <div class="card mb-4">
-            <div class="card-header bg-white">
-                <div class="d-flex justify-content-between align-items-center flex-wrap">
-                    <h5 class="mb-0">
-                        <i class="fas fa-list me-2"></i>รายการอุปกรณ์
-                    </h5>
-                    <div class="d-flex align-items-center mt-2 mt-md-0">
-                        <div class="btn-group view-toggle me-2">
-                            <button class="btn btn-sm btn-outline-primary active" id="normalViewBtn">
-                                <i class="fas fa-th-large"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-primary" id="compactViewBtn">
-                                <i class="fas fa-th"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-primary" id="extraCompactViewBtn">
-                                <i class="fas fa-list"></i>
-                            </button>
+                    <div class="card-body">
+                        <div class="text-center mb-4">
+                            <p>กรุณาเข้าสู่ระบบเพื่อดูสถานะอุปกรณ์</p>
                         </div>
-                        <div class="input-group" style="max-width: 200px;">
-                            <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="ค้นหาอุปกรณ์...">
-                            <button class="btn btn-sm btn-outline-secondary" type="button" id="searchBtn">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
+                        <form id="loginForm">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">อีเมล</label>
+                                <input type="email" class="form-control" id="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">รหัสผ่าน</label>
+                                <input type="password" class="form-control" id="password" required>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">เข้าสู่ระบบ</button>
+                            </div>
+                            <div id="loginError" class="alert alert-danger mt-3 d-none">
+                                เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาตรวจสอบอีเมลและรหัสผ่านอีกครั้ง
+                            </div>
+                        </form>
                     </div>
                 </div>
-            </div>
-            <div class="card-body">
-                <div class="loading-spinner" id="loadingSpinner">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">กำลังโหลด...</span>
-                    </div>
-                </div>
-                <div id="devicesList" class="row g-2"></div>
-                <p class="last-checked text-center mt-3">
-                    ข้อมูลล่าสุดเมื่อ: <span id="lastUpdatedTime">-</span>
-                </p>
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-light py-2 mt-4">
-        <div class="container text-center">
-            <p class="mb-0">&copy; 2025 ระบบติดตามสถานะอุปกรณ์ | <a href="#" target="_blank">เอกสาร</a></p>
+    <!-- หน้าหลักแสดงอุปกรณ์ (แสดงเมื่อล็อกอินแล้ว) -->
+    <div id="mainApp" class="d-none">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-3">
+            <div class="container">
+                <a class="navbar-brand" href="#">
+                    <i class="fas fa-tv me-2"></i>ระบบติดตามสถานะอุปกรณ์
+                </a>
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-light btn-sm me-2" id="refreshBtn">
+                        <i class="fas fa-sync-alt me-1"></i> รีเฟรช
+                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-light btn-sm dropdown-toggle" id="userMenu" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i> <span id="userDisplayName">ผู้ใช้</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" id="logoutBtn">ออกจากระบบ</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container">
+            <!-- Summary Section -->
+            <div class="row mb-3">
+                <div class="col-md-4 mb-2">
+                    <div class="card summary-card-online h-100">
+                        <div class="card-body py-2">
+                            <h5 class="card-title mb-1">
+                                <i class="fas fa-check-circle me-1"></i>อุปกรณ์ออนไลน์
+                            </h5>
+                            <h2 class="display-5 fw-bold mb-0" id="activeCount">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <div class="card summary-card-offline h-100">
+                        <div class="card-body py-2">
+                            <h5 class="card-title mb-1">
+                                <i class="fas fa-times-circle me-1"></i>อุปกรณ์ออฟไลน์
+                            </h5>
+                            <h2 class="display-5 fw-bold mb-0" id="inactiveCount">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <div class="card summary-card-total h-100">
+                        <div class="card-body py-2">
+                            <h5 class="card-title mb-1">
+                                <i class="fas fa-tablet-alt me-1"></i>อุปกรณ์ทั้งหมด
+                            </h5>
+                            <h2 class="display-5 fw-bold mb-0" id="totalCount">0</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Devices List Section -->
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list me-2"></i>รายการอุปกรณ์
+                        </h5>
+                        <div class="d-flex align-items-center mt-2 mt-md-0">
+                            <div class="btn-group view-toggle me-2">
+                                <button class="btn btn-sm btn-outline-primary active" id="normalViewBtn">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary" id="compactViewBtn">
+                                    <i class="fas fa-th"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary" id="extraCompactViewBtn">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+                            <div class="input-group" style="max-width: 200px;">
+                                <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="ค้นหาอุปกรณ์...">
+                                <button class="btn btn-sm btn-outline-secondary" type="button" id="searchBtn">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="loading-spinner" id="loadingSpinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">กำลังโหลด...</span>
+                        </div>
+                    </div>
+                    <div id="devicesList" class="row g-2"></div>
+                    <p class="last-checked text-center mt-3">
+                        ข้อมูลล่าสุดเมื่อ: <span id="lastUpdatedTime">-</span>
+                    </p>
+                </div>
+            </div>
         </div>
-    </footer>
+
+        <!-- Footer -->
+        <footer class="bg-light py-2 mt-4">
+            <div class="container text-center">
+                <p class="mb-0">&copy; 2025 ระบบติดตามสถานะอุปกรณ์ | <a href="#" target="_blank">เอกสาร</a></p>
+            </div>
+        </footer>
+    </div>
 
     <!-- Modal สำหรับแก้ไขชื่ออุปกรณ์ -->
     <div class="modal fade" id="editDeviceNameModal" tabindex="-1" aria-labelledby="editDeviceNameModalLabel" aria-hidden="true">
@@ -136,6 +183,8 @@
     <!-- Firebase -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-database-compat.min.js"></script>
+    <!-- เพิ่ม Firebase Auth SDK -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-auth-compat.min.js"></script>
     
     <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
