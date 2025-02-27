@@ -8,13 +8,11 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Google Font - Sarabun -->
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <link href="styles.css" rel="stylesheet">
 </head>
 <body>
-    <!-- หน้าล็อกอิน1 (ซ่อนไว้ตอนเริ่มต้น) -->
+    <!-- หน้าล็อกอิน (ซ่อนไว้ตอนเริ่มต้น) -->
     <div id="loginPage" class="container mt-5 d-none">
         <div class="row justify-content-center">
             <div class="col-md-6">
@@ -51,8 +49,8 @@
     <!-- หน้าหลักแสดงอุปกรณ์ (แสดงเมื่อล็อกอินแล้ว) -->
     <div id="mainApp" class="d-none">
         <!-- Navbar -->
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-2">
-            <div class="container-fluid">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-3">
+            <div class="container">
                 <a class="navbar-brand" href="#">
                     <i class="fas fa-tv me-2"></i>ระบบติดตามสถานะอุปกรณ์ Z-Signage
                 </a>
@@ -72,9 +70,9 @@
             </div>
         </nav>
 
-        <div class="container-fluid main-content">
+        <div class="container">
             <!-- Summary Section -->
-            <div class="row mb-2">
+            <div class="row mb-3">
                 <div class="col-md-4 mb-2">
                     <div class="card summary-card-online h-100">
                         <div class="card-body py-2">
@@ -108,7 +106,7 @@
             </div>
 
             <!-- Devices List Section -->
-            <div class="card mb-2 devices-container">
+            <div class="card mb-4">
                 <div class="card-header bg-white">
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <h5 class="mb-0">
@@ -116,17 +114,14 @@
                         </h5>
                         <div class="d-flex align-items-center mt-2 mt-md-0">
                             <div class="btn-group view-toggle me-2">
-                                <button class="btn btn-sm btn-outline-primary active" id="normalViewBtn" title="มุมมองปกติ">
+                                <button class="btn btn-sm btn-outline-primary active" id="normalViewBtn">
                                     <i class="fas fa-th-large"></i>
                                 </button>
-                                <button class="btn btn-sm btn-outline-primary" id="compactViewBtn" title="มุมมองย่อ">
+                                <button class="btn btn-sm btn-outline-primary" id="compactViewBtn">
                                     <i class="fas fa-th"></i>
                                 </button>
-                                <button class="btn btn-sm btn-outline-primary" id="extraCompactViewBtn" title="มุมมองรายการ">
+                                <button class="btn btn-sm btn-outline-primary" id="extraCompactViewBtn">
                                     <i class="fas fa-list"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-success" id="gridViewBtn" title="มุมมองตาราง 6x4">
-                                    <i class="fas fa-grip-horizontal"></i>
                                 </button>
                             </div>
                             <div class="input-group" style="max-width: 200px;">
@@ -138,14 +133,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-body grid-container p-2">
+                <div class="card-body">
                     <div class="loading-spinner" id="loadingSpinner">
                         <div class="spinner-border text-primary" role="status">
                             <span class="visually-hidden">กำลังโหลด...</span>
                         </div>
                     </div>
                     <div id="devicesList" class="row g-2"></div>
-                    <p class="last-checked text-center mt-2">
+                    <p class="last-checked text-center mt-3">
                         ข้อมูลล่าสุดเมื่อ: <span id="lastUpdatedTime">-</span>
                     </p>
                 </div>
@@ -153,8 +148,8 @@
         </div>
 
         <!-- Footer -->
-        <footer class="bg-light py-1 mt-1">
-            <div class="container-fluid text-center">
+        <footer class="bg-light py-2 mt-4">
+            <div class="container text-center">
                 <p class="mb-0">&copy; 2025 ระบบติดตามสถานะอุปกรณ์ | <a href="#" target="_blank">เอกสาร</a></p>
             </div>
         </footer>
