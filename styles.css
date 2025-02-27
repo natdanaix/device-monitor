@@ -1,6 +1,10 @@
 body {
     font-family: 'Sarabun', sans-serif;
     background-color: #f5f5f5;
+    /* Optimize for 16:9 display */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .card {
@@ -8,6 +12,7 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
     margin-bottom: 12px;
     transition: transform 0.2s;
+    height: 100%;
 }
 
 /* สไตล์สำหรับการ์ดสรุปข้อมูลส่วนบน */
@@ -83,6 +88,9 @@ body {
 
 .device-info {
     margin-bottom: 0.4rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .device-info-label {
@@ -126,8 +134,77 @@ body {
     margin-bottom: 8px;
 }
 
+/* 16:9 grid layout optimization */
+.grid-container {
+    height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+/* Optimize for 5x4 grid layout */
+.five-by-four-grid .device-card {
+    width: 20%;
+    padding: 0 5px;
+    margin-bottom: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1500px) {
+    .five-by-four-grid .device-card {
+        width: 25%;
+    }
+}
+
+@media (max-width: 1200px) {
+    .five-by-four-grid .device-card {
+        width: 33.333%;
+    }
+}
+
 @media (max-width: 768px) {
     .device-count {
         text-align: center;
     }
+    .five-by-four-grid .device-card {
+        width: 50%;
+    }
+}
+
+@media (max-width: 576px) {
+    .five-by-four-grid .device-card {
+        width: 100%;
+    }
+}
+
+/* Optimize for compact views in 5x4 grid */
+.five-by-four-grid .card {
+    margin-bottom: 10px;
+}
+
+.five-by-four-grid .device-info {
+    font-size: 0.75rem;
+}
+
+/* Main container for 16:9 layout */
+#mainApp {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.devices-container {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+footer {
+    margin-top: auto;
 }
