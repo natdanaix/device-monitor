@@ -27,7 +27,6 @@ const searchBtn = document.getElementById('searchBtn');
 const normalViewBtn = document.getElementById('normalViewBtn');
 const compactViewBtn = document.getElementById('compactViewBtn');
 const extraCompactViewBtn = document.getElementById('extraCompactViewBtn');
-const gridViewBtn = document.getElementById('gridViewBtn');
 const loginPage = document.getElementById('loginPage');
 const mainApp = document.getElementById('mainApp');
 const loginForm = document.getElementById('loginForm');
@@ -36,7 +35,7 @@ const logoutBtn = document.getElementById('logoutBtn');
 const loginError = document.getElementById('loginError');
 
 // View state
-let currentView = 'normal'; // normal, compact, extraCompact, grid
+let currentView = 'normal'; // normal, compact, extraCompact
 
 // Authentication state observer
 auth.onAuthStateChanged(user => {
@@ -194,32 +193,7 @@ function createDeviceCard(deviceId, deviceData) {
         `${thaiDateTime}<br><small>(${getTimeSinceLastUpdate(deviceData.lastUpdated)})</small>` : 
         '-';
 
-    if (currentView === 'grid') {
-        // 5x4 Grid View optimized for 16:9 display
-        return `
-            <div class="device-card">
-                <div class="card ${statusClass}">
-                    <div class="card-body p-2">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <strong class="text-truncate" title="${deviceName}">${deviceName}</strong>
-                            <span class="badge ${isActive ? 'bg-success' : 'bg-danger'} status-badge">
-                                <i class="fas ${statusIcon}"></i>
-                            </span>
-                        </div>
-                        <small class="d-block text-truncate" title="${deviceId}">${deviceId}</small>
-                        <div class="d-flex justify-content-between align-items-center mt-1">
-                            <small>${getTimeSinceLastUpdate(deviceData.lastUpdated)}</small>
-                            <button class="btn btn-sm btn-outline-primary edit-name-btn p-0 px-1" 
-                                data-device-id="${deviceId}" 
-                                data-device-name="${deviceName}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    } else if (currentView === 'extraCompact') {
+    if (currentView === 'extraCompact') {
         return `
             <div class="col-12 col-device">
                 <div class="card mb-1">
@@ -405,17 +379,6 @@ function loadDevicesData() {
                 return aActive ? -1 : 1;
             });
             
-            // Apply the appropriate class for the grid view
-            if (currentView === 'grid') {
-                devicesList.classList.add('five-by-four-grid');
-                devicesList.classList.remove('row', 'g-2');
-                devicesList.classList.add('d-flex', 'flex-wrap');
-            } else {
-                devicesList.classList.remove('five-by-four-grid');
-                devicesList.classList.add('row', 'g-2');
-                devicesList.classList.remove('d-flex', 'flex-wrap');
-            }
-            
             sortedDevices.forEach(([deviceId, deviceData]) => {
                 devicesHTML += createDeviceCard(deviceId, deviceData);
             });
@@ -447,8 +410,7 @@ function setNormalView() {
     normalViewBtn.classList.add('active');
     compactViewBtn.classList.remove('active');
     extraCompactViewBtn.classList.remove('active');
-    gridViewBtn.classList.remove('active');
-    devicesList.classList.remove('compact-view', 'extra-compact-view', 'five-by-four-grid');
+    devicesList.classList.remove('compact-view', 'extra-compact-view');
     loadDevicesData();
 }
 
@@ -457,9 +419,8 @@ function setCompactView() {
     normalViewBtn.classList.remove('active');
     compactViewBtn.classList.add('active');
     extraCompactViewBtn.classList.remove('active');
-    gridViewBtn.classList.remove('active');
     devicesList.classList.add('compact-view');
-    devicesList.classList.remove('extra-compact-view', 'five-by-four-grid');
+    devicesList.classList.remove('extra-compact-view');
     loadDevicesData();
 }
 
@@ -468,19 +429,8 @@ function setExtraCompactView() {
     normalViewBtn.classList.remove('active');
     compactViewBtn.classList.remove('active');
     extraCompactViewBtn.classList.add('active');
-    gridViewBtn.classList.remove('active');
-    devicesList.classList.remove('compact-view', 'five-by-four-grid');
+    devicesList.classList.remove('compact-view');
     devicesList.classList.add('extra-compact-view');
-    loadDevicesData();
-}
-
-function setGridView() {
-    currentView = 'grid';
-    normalViewBtn.classList.remove('active');
-    compactViewBtn.classList.remove('active');
-    extraCompactViewBtn.classList.remove('active');
-    gridViewBtn.classList.add('active');
-    devicesList.classList.remove('compact-view', 'extra-compact-view');
     loadDevicesData();
 }
 
@@ -556,7 +506,6 @@ searchInput.addEventListener('keyup', filterDevices);
 normalViewBtn.addEventListener('click', setNormalView);
 compactViewBtn.addEventListener('click', setCompactView);
 extraCompactViewBtn.addEventListener('click', setExtraCompactView);
-gridViewBtn.addEventListener('click', setGridView);
 
 // Auto refresh every 5 minutes when signed in
 let autoRefreshInterval;
