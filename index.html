@@ -49,8 +49,8 @@
     <!-- หน้าหลักแสดงอุปกรณ์ (แสดงเมื่อล็อกอินแล้ว) -->
     <div id="mainApp" class="d-none">
         <!-- Navbar -->
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-3">
-            <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-2">
+            <div class="container-fluid">
                 <a class="navbar-brand" href="#">
                     <i class="fas fa-tv me-2"></i>ระบบติดตามสถานะอุปกรณ์ Z-Signage
                 </a>
@@ -70,9 +70,9 @@
             </div>
         </nav>
 
-        <div class="container">
+        <div class="container-fluid main-content">
             <!-- Summary Section -->
-            <div class="row mb-3">
+            <div class="row mb-2">
                 <div class="col-md-4 mb-2">
                     <div class="card summary-card-online h-100">
                         <div class="card-body py-2">
@@ -106,7 +106,7 @@
             </div>
 
             <!-- Devices List Section -->
-            <div class="card mb-4">
+            <div class="card mb-2 devices-container">
                 <div class="card-header bg-white">
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <h5 class="mb-0">
@@ -123,6 +123,9 @@
                                 <button class="btn btn-sm btn-outline-primary" id="extraCompactViewBtn">
                                     <i class="fas fa-list"></i>
                                 </button>
+                                <button class="btn btn-sm btn-outline-success" id="gridViewBtn">
+                                    <i class="fas fa-grip-horizontal"></i>
+                                </button>
                             </div>
                             <div class="input-group" style="max-width: 200px;">
                                 <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="ค้นหาอุปกรณ์...">
@@ -133,14 +136,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body grid-container p-2">
                     <div class="loading-spinner" id="loadingSpinner">
                         <div class="spinner-border text-primary" role="status">
                             <span class="visually-hidden">กำลังโหลด...</span>
                         </div>
                     </div>
                     <div id="devicesList" class="row g-2"></div>
-                    <p class="last-checked text-center mt-3">
+                    <p class="last-checked text-center mt-2">
                         ข้อมูลล่าสุดเมื่อ: <span id="lastUpdatedTime">-</span>
                     </p>
                 </div>
@@ -148,8 +151,8 @@
         </div>
 
         <!-- Footer -->
-        <footer class="bg-light py-2 mt-4">
-            <div class="container text-center">
+        <footer class="bg-light py-1 mt-1">
+            <div class="container-fluid text-center">
                 <p class="mb-0">&copy; 2025 ระบบติดตามสถานะอุปกรณ์ | <a href="#" target="_blank">เอกสาร</a></p>
             </div>
         </footer>
