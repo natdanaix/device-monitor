@@ -15,7 +15,7 @@ body {
     height: 100%;
 }
 
-/* สไตล์สำหรับการ์ดสรุปข้อมูลส่วนบน */
+/* สไตล์สำหรับการ์ดสรุปข้อมูลส่วนบน1 */
 .summary-card-online {
     background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
     color: white;
