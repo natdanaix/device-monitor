@@ -1,10 +1,6 @@
 body {
     font-family: 'Sarabun', sans-serif;
     background-color: #f5f5f5;
-    /* Optimize for 16:9 display */
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
 }
 
 .card {
@@ -12,10 +8,9 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
     margin-bottom: 12px;
     transition: transform 0.2s;
-    height: 100%;
 }
 
-/* สไตล์สำหรับการ์ดสรุปข้อมูลส่วนบน1 */
+/* สไตล์สำหรับการ์ดสรุปข้อมูลส่วนบน */
 .summary-card-online {
     background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
     color: white;
@@ -88,9 +83,6 @@ body {
 
 .device-info {
     margin-bottom: 0.4rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .device-info-label {
@@ -134,94 +126,8 @@ body {
     margin-bottom: 8px;
 }
 
-/* 16:9 grid layout optimization */
-.grid-container {
-    height: calc(100vh - 200px);
-    overflow-y: auto;
-}
-
-/* Optimize for 6x4 grid layout */
-.six-by-four-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    grid-gap: 8px;
-    padding: 8px;
-}
-
-.six-by-four-grid .device-card {
-    width: 100%;
-    padding: 0;
-    margin: 0;
-}
-
-/* Responsive adjustments */
-@media (max-width: 1600px) {
-    .six-by-four-grid {
-        grid-template-columns: repeat(5, 1fr);
-    }
-}
-
-@media (max-width: 1400px) {
-    .six-by-four-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
-
-@media (max-width: 1100px) {
-    .six-by-four-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
 @media (max-width: 768px) {
     .device-count {
         text-align: center;
     }
-    .six-by-four-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 576px) {
-    .six-by-four-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Optimize for compact views in 6x4 grid */
-.six-by-four-grid .card {
-    margin-bottom: 0;
-}
-
-.six-by-four-grid .device-info {
-    font-size: 0.7rem;
-}
-
-.six-by-four-grid .card-body {
-    padding: 0.5rem;
-}
-
-/* Main container for 16:9 layout */
-#mainApp {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-}
-
-.main-content {
-    flex: 1;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-.devices-container {
-    flex: 1;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-footer {
-    margin-top: auto;
 }
