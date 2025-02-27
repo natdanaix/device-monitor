@@ -195,7 +195,7 @@ function createDeviceCard(deviceId, deviceData) {
         '-';
 
     if (currentView === 'grid') {
-        // 6x4 Grid View optimized for 16:9 display
+        // 5x4 Grid View optimized for 16:9 display
         return `
             <div class="device-card">
                 <div class="card ${statusClass}">
@@ -315,3 +315,258 @@ function createDeviceCard(deviceId, deviceData) {
             </div>
         `;
     }
+}
+
+// Update device counts
+function updateCounts(devices) {
+    let active = 0;
+    let inactive = 0;
+    let total = Object.keys(devices).length;
+    
+    for (const deviceId in devices) {
+        if (isDeviceActive(devices[deviceId])) {
+            active++;
+        } else {
+            inactive++;
+        }
+    }
+    
+    activeCount.textContent = active;
+    inactiveCount.textContent = inactive;
+    totalCount.textContent = total;
+}
+
+// Filter devices based on search input
+function filterDevices() {
+    const searchTerm = searchInput.value.toLowerCase();
+    const deviceCards = document.querySelectorAll('.device-card, .col-device');
+    
+    deviceCards.forEach(card => {
+        const cardText = card.textContent.toLowerCase();
+        if (cardText.includes(searchTerm)) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+// Update device name in Firebase
+function updateDeviceName(deviceId, newName) {
+    // ตรวจสอบสิทธิ์ผู้ใช้ก่อนอัปเดต
+    if (!auth.currentUser) {
+        alert('คุณไม่ได้ล็อกอิน กรุณาล็อกอินก่อนแก้ไขชื่ออุปกรณ์');
+        return Promise.reject(new Error('ไม่ได้ล็อกอิน'));
+    }
+    
+    const deviceRef = database.ref('device_status').child(deviceId);
+    
+    return deviceRef.update({
+        deviceName: newName,
+        nameUpdatedByUser: true,
+        nameUpdatedAt: new Date().toISOString(),
+        updatedBy: auth.currentUser.email // เพิ่มข้อมูลว่าใครเป็นคนอัปเดต
+    }).then(() => {
+        loadDevicesData();
+        return true;
+    }).catch(error => {
+        console.error("Error updating device name:", error);
+        alert(`เกิดข้อผิดพลาด: ${error.message}`);
+        return false;
+    });
+}
+
+// Load devices data from Firebase
+function loadDevicesData() {
+    // ตรวจสอบสิทธิ์ผู้ใช้ก่อนโหลดข้อมูล
+    if (!auth.currentUser) {
+        console.error('ไม่ได้ล็อกอิน');
+        return;
+    }
+    
+    loadingSpinner.style.display = 'flex';
+    devicesList.innerHTML = '';
+    
+    const devicesRef = database.ref('device_status');
+    
+    devicesRef.once('value')
+        .then(snapshot => {
+            const devices = snapshot.val() || {};
+            let devicesHTML = '';
+            
+            const sortedDevices = Object.entries(devices).sort((a, b) => {
+                const aActive = isDeviceActive(a[1]);
+                const bActive = isDeviceActive(b[1]);
+                
+                if (aActive === bActive) {
+                    return (a[1].deviceName || a[0]).localeCompare(b[1].deviceName || b[0]);
+                }
+                
+                return aActive ? -1 : 1;
+            });
+            
+            // Apply the appropriate class for the grid view
+            if (currentView === 'grid') {
+                devicesList.classList.add('five-by-four-grid');
+                devicesList.classList.remove('row', 'g-2');
+                devicesList.classList.add('d-flex', 'flex-wrap');
+            } else {
+                devicesList.classList.remove('five-by-four-grid');
+                devicesList.classList.add('row', 'g-2');
+                devicesList.classList.remove('d-flex', 'flex-wrap');
+            }
+            
+            sortedDevices.forEach(([deviceId, deviceData]) => {
+                devicesHTML += createDeviceCard(deviceId, deviceData);
+            });
+            
+            devicesList.innerHTML = devicesHTML || '<div class="col text-center">ไม่พบข้อมูลอุปกรณ์</div>';
+            updateCounts(devices);
+            
+            const now = new Date();
+            lastUpdatedTime.textContent = formatThaiDateTime(now.toISOString());
+        })
+        .catch(error => {
+            console.error("Error fetching data:", error);
+            devicesList.innerHTML = `
+                <div class="col text-center text-danger">
+                    <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
+                    <h5>เกิดข้อผิดพลาดในการโหลดข้อมูล</h5>
+                    <p>${error.message}</p>
+                </div>
+            `;
+        })
+        .finally(() => {
+            loadingSpinner.style.display = 'none';
+        });
+}
+
+// View toggle functions
+function setNormalView() {
+    currentView = 'normal';
+    normalViewBtn.classList.add('active');
+    compactViewBtn.classList.remove('active');
+    extraCompactViewBtn.classList.remove('active');
+    gridViewBtn.classList.remove('active');
+    devicesList.classList.remove('compact-view', 'extra-compact-view', 'five-by-four-grid');
+    loadDevicesData();
+}
+
+function setCompactView() {
+    currentView = 'compact';
+    normalViewBtn.classList.remove('active');
+    compactViewBtn.classList.add('active');
+    extraCompactViewBtn.classList.remove('active');
+    gridViewBtn.classList.remove('active');
+    devicesList.classList.add('compact-view');
+    devicesList.classList.remove('extra-compact-view', 'five-by-four-grid');
+    loadDevicesData();
+}
+
+function setExtraCompactView() {
+    currentView = 'extraCompact';
+    normalViewBtn.classList.remove('active');
+    compactViewBtn.classList.remove('active');
+    extraCompactViewBtn.classList.add('active');
+    gridViewBtn.classList.remove('active');
+    devicesList.classList.remove('compact-view', 'five-by-four-grid');
+    devicesList.classList.add('extra-compact-view');
+    loadDevicesData();
+}
+
+function setGridView() {
+    currentView = 'grid';
+    normalViewBtn.classList.remove('active');
+    compactViewBtn.classList.remove('active');
+    extraCompactViewBtn.classList.remove('active');
+    gridViewBtn.classList.add('active');
+    devicesList.classList.remove('compact-view', 'extra-compact-view');
+    loadDevicesData();
+}
+
+// Setup edit name modal
+const editDeviceNameModal = new bootstrap.Modal(document.getElementById('editDeviceNameModal'));
+const editDeviceNameForm = document.getElementById('editDeviceNameForm');
+const editDeviceIdInput = document.getElementById('editDeviceId');
+const editDeviceNameInput = document.getElementById('editDeviceName');
+const saveDeviceNameBtn = document.getElementById('saveDeviceNameBtn');
+
+// Event delegation for edit buttons
+devicesList.addEventListener('click', event => {
+    const editBtn = event.target.closest('.edit-name-btn');
+    if (!editBtn) return;
+    
+    const deviceId = editBtn.dataset.deviceId;
+    const currentName = editBtn.dataset.deviceName;
+    
+    editDeviceIdInput.value = deviceId;
+    editDeviceNameInput.value = currentName;
+    
+    editDeviceNameModal.show();
+});
+
+// Save button click handler
+saveDeviceNameBtn.addEventListener('click', () => {
+    if (editDeviceNameForm.checkValidity()) {
+        const deviceId = editDeviceIdInput.value;
+        const newName = editDeviceNameInput.value.trim();
+        
+        if (newName) {
+            saveDeviceNameBtn.disabled = true;
+            saveDeviceNameBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> กำลังบันทึก...';
+            
+            updateDeviceName(deviceId, newName)
+                .then(success => {
+                    if (success) {
+                        editDeviceNameModal.hide();
+                    }
+                })
+                .finally(() => {
+                    saveDeviceNameBtn.disabled = false;
+                    saveDeviceNameBtn.innerHTML = 'บันทึก';
+                });
+        }
+    } else {
+        editDeviceNameForm.reportValidity();
+    }
+});
+
+// Handle form submission (for Enter key)
+editDeviceNameForm.addEventListener('submit', event => {
+    event.preventDefault();
+    saveDeviceNameBtn.click();
+});
+
+// Event Listeners
+loginForm.addEventListener('submit', event => {
+    event.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    login(email, password);
+});
+
+logoutBtn.addEventListener('click', event => {
+    event.preventDefault();
+    logout();
+});
+
+refreshBtn.addEventListener('click', loadDevicesData);
+searchBtn.addEventListener('click', filterDevices);
+searchInput.addEventListener('keyup', filterDevices);
+normalViewBtn.addEventListener('click', setNormalView);
+compactViewBtn.addEventListener('click', setCompactView);
+extraCompactViewBtn.addEventListener('click', setExtraCompactView);
+gridViewBtn.addEventListener('click', setGridView);
+
+// Auto refresh every 5 minutes when signed in
+let autoRefreshInterval;
+
+auth.onAuthStateChanged(user => {
+    if (user) {
+        // เริ่ม auto refresh เมื่อล็อกอินแล้ว
+        autoRefreshInterval = setInterval(loadDevicesData, 5 * 60 * 1000);
+    } else {
+        // หยุด auto refresh เมื่อออกจากระบบ
+        clearInterval(autoRefreshInterval);
+    }
+});
